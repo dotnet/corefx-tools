@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// 
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,8 +23,6 @@ namespace stress.codegen.utils
 
     public class ConsoleOutputWriter : IOutputWriter
     {
-
-
         public void WriteInfo(string message)
         {
             WriteToConsole(message);
@@ -29,7 +31,6 @@ namespace stress.codegen.utils
         public void WriteWarning(string message)
         {
             WriteToConsole(message, ConsoleColor.Yellow);
-
         }
 
         public void WriteError(string message)
@@ -39,7 +40,7 @@ namespace stress.codegen.utils
 
         private static void WriteToConsole(string message, ConsoleColor? color = null)
         {
-            lock(g_ConsoleLock)
+            lock (s_consoleLock)
             {
                 var origFgColor = Console.ForegroundColor;
 
@@ -54,38 +55,37 @@ namespace stress.codegen.utils
             }
         }
 
-        private static object g_ConsoleLock = new object();
+        private static object s_consoleLock = new object();
     }
 
     //if TaskLog is
     //outputs to the console with color formatting by default
     public class CodeGenOutput
     {
-        private static IOutputWriter g_writer = new ConsoleOutputWriter();
+        private static IOutputWriter s_writer = new ConsoleOutputWriter();
 
         private CodeGenOutput() { }
-        
+
         //public static MSBuild.TaskLoggingHelper TaskLog { get; set; }
 
         public static void Redirect(IOutputWriter writer)
         {
-            g_writer = writer;
+            s_writer = writer;
         }
 
         public static void Info(string message)
         {
-            g_writer.WriteInfo(message);
+            s_writer.WriteInfo(message);
         }
 
         public static void Warning(string message)
         {
-            g_writer.WriteWarning(message);
+            s_writer.WriteWarning(message);
         }
 
         public static void Error(string message)
         {
-            g_writer.WriteError(message);
+            s_writer.WriteError(message);
         }
-        
     }
 }

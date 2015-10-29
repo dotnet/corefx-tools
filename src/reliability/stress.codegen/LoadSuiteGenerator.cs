@@ -1,4 +1,8 @@
-﻿using stress.codegen.utils;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// 
+
+using stress.codegen.utils;
 using stress.execution;
 using System;
 using System.Collections.Generic;
@@ -17,13 +21,13 @@ namespace stress.codegen
         {
             int suiteTestCount = 0;
 
-            this._unitTestSelector = new UnitTestSelector();
+            _unitTestSelector = new UnitTestSelector();
 
-            this._unitTestSelector.Initialize(seed, testPaths, searchPatterns, hintPaths);
+            _unitTestSelector.Initialize(seed, testPaths, searchPatterns, hintPaths);
 
-            foreach(var loadTestConfig in config.LoadTestConfigs)
+            foreach (var loadTestConfig in config.LoadTestConfigs)
             {
-                for(int i = 0; i < loadTestConfig.TestCount; i++)
+                for (int i = 0; i < loadTestConfig.TestCount; i++)
                 {
                     var loadTestInfo = new LoadTestInfo()
                     {
@@ -38,7 +42,7 @@ namespace stress.codegen
                     };
 
                     loadTestInfo.SourceDirectory = Path.Combine(outputPath, loadTestInfo.TestName);
-                    loadTestInfo.UnitTests = this._unitTestSelector.NextUnitTests(loadTestConfig.NumTests).ToArray();
+                    loadTestInfo.UnitTests = _unitTestSelector.NextUnitTests(loadTestConfig.NumTests).ToArray();
 
                     this.GenerateTestSources(loadTestInfo);
                     CodeGenOutput.Info($"Generated Load Test: {loadTestInfo.TestName}");
@@ -52,16 +56,16 @@ namespace stress.codegen
             Directory.CreateDirectory(loadTest.SourceDirectory);
 
             CopyUnitTestAssemblyRefsAsync(loadTest);
-            
+
             new LoadTestSourceFileGenerator().GenerateSourceFile(loadTest);
-            
+
             new ProgramSourceFileGenerator().GenerateSourceFile(loadTest);
 
             // Check whether Linux/Mac or Windows...we don't actually want to do both here.
             new ExecutionFileGeneratorWindows().GenerateSourceFile(loadTest);
             new ExecutionFileGeneratorLinux().GenerateSourceFile(loadTest);
 
-            ToFProjectFileGenerator.GenerateProjectFile(loadTest);
+            HelixProjectFileGenerator.GenerateProjectFile(loadTest);
         }
 
         private void CopyUnitTestAssemblyRefsAsync(LoadTestInfo loadTest)
@@ -70,7 +74,7 @@ namespace stress.codegen
 
             Directory.CreateDirectory(refDir);
 
-            foreach(var assmPath in loadTest.UnitTests.Select(t => t.AssemblyPath).Union(loadTest.UnitTests.SelectMany(t => t.ReferenceInfo.ReferencedAssemblies.Select(ra => ra.Path))))
+            foreach (var assmPath in loadTest.UnitTests.Select(t => t.AssemblyPath).Union(loadTest.UnitTests.SelectMany(t => t.ReferenceInfo.ReferencedAssemblies.Select(ra => ra.Path))))
             {
                 string destPath = Path.Combine(refDir, Path.GetFileName(assmPath));
 

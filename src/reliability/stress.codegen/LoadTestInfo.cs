@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// 
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -26,7 +30,7 @@ namespace stress.codegen
         public TimeSpan Duration { get; set; }
 
         public int WorkerCount { get; set; }
-        
+
         public string SourceDirectory { get; set; }
 
         public IEnumerable<UnitTestInfo> UnitTests { get; set; }

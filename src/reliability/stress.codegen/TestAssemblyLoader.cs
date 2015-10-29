@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// 
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,7 +15,7 @@ namespace stress.codegen
     public class TestAssemblyLoader : MarshalByRefObject
     {
         private TestAssemblyInfo _assembly;
-        
+
         public string AssemblyPath { get; set; }
 
         public string LoadError { get; set; }
@@ -24,15 +28,15 @@ namespace stress.codegen
 
             this.HintPaths = hintPaths;
 
-            
+
 
             this.LoadError = null;
-            
+
             AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += IsoDomain_ReflectionOnlyAssemblyResolve;
 
             try
             {
-                this._assembly = new TestAssemblyInfo() { Assembly = Assembly.ReflectionOnlyLoadFrom(this.AssemblyPath), ReferenceInfo = new TestReferenceInfo() };
+                _assembly = new TestAssemblyInfo() { Assembly = Assembly.ReflectionOnlyLoadFrom(this.AssemblyPath), ReferenceInfo = new TestReferenceInfo() };
             }
             catch (Exception e)
             {
@@ -45,10 +49,11 @@ namespace stress.codegen
         public UnitTestInfo[] GetTests<TDiscoverer>()
             where TDiscoverer : ITestDiscoverer, new()
         {
-            try {
+            try
+            {
                 var discoverer = new TDiscoverer();
 
-                return discoverer.GetTests(this._assembly);
+                return discoverer.GetTests(_assembly);
             }
             catch (Exception e)
             {
@@ -57,11 +62,11 @@ namespace stress.codegen
 
             return new UnitTestInfo[] { };
         }
-        
+
         private Assembly IsoDomain_ReflectionOnlyAssemblyResolve(object sender, ResolveEventArgs args)
         {
             Assembly assm = null;
-            if (g_loadAttempted.Add(args.Name))
+            if (s_loadAttempted.Add(args.Name))
             {
                 try
                 {
@@ -97,14 +102,13 @@ namespace stress.codegen
                         {
                             return Assembly.ReflectionOnlyLoadFrom(hintPath);
                         }
-                        if(File.Exists(Path.ChangeExtension(hintPath, ".exe")))
+                        if (File.Exists(Path.ChangeExtension(hintPath, ".exe")))
                         {
                             return Assembly.ReflectionOnlyLoadFrom(hintPath);
                         }
                     }
                     catch
                     {
-
                     }
                 }
             }
@@ -118,11 +122,11 @@ namespace stress.codegen
             {
                 if (IsFrameworkAssembly(assembly))
                 {
-                    this._assembly.ReferenceInfo.FrameworkReferences.Add(assembly.GetName().Name);
+                    _assembly.ReferenceInfo.FrameworkReferences.Add(assembly.GetName().Name);
                 }
                 else
                 {
-                    this._assembly.ReferenceInfo.ReferencedAssemblies.Add(new AssemblyReference() { Path = assembly.Location });
+                    _assembly.ReferenceInfo.ReferencedAssemblies.Add(new AssemblyReference() { Path = assembly.Location });
                 }
             }
         }
@@ -140,6 +144,6 @@ namespace stress.codegen
 
 
         internal static Dictionary<string, string> g_ResolvedAssemblies = new Dictionary<string, string>();
-        private static HashSet<string> g_loadAttempted = new HashSet<string>();
+        private static HashSet<string> s_loadAttempted = new HashSet<string>();
     }
 }

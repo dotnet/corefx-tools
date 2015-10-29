@@ -1,4 +1,8 @@
-﻿using stress.codegen;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// 
+
+using stress.codegen;
 using stress.execution;
 using System;
 using System.Collections.Generic;
@@ -10,15 +14,13 @@ namespace stress.console
 {
     internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
-
             MultiFunctionCmdArgs argParser = new MultiFunctionCmdArgs();
 
             argParser.AddFunction<GenTestsArgs>("createsuite", GenTests);
 
             argParser.InvokeFunctionWithArgs(args);
-            
         }
 
         public static int GenTests(GenTestsArgs args)
@@ -31,7 +33,6 @@ namespace stress.console
 
             return 0;
         }
-        
     }
 
     internal class GenTestsArgs : CmdArgsBase

@@ -1,4 +1,8 @@
-﻿using stress.execution;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// 
+
+using stress.execution;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,7 +14,6 @@ using Xunit;
 
 namespace stress.samples
 {
-
     public class SimpleSample
     {
         [Load("00:00:20")]
@@ -38,7 +41,7 @@ namespace stress.samples
             //wait for original workers to complete
             t.GetAwaiter().GetResult();
         }
-        
+
         public void Foo()
         {
             Console.WriteLine("Hi I'm Foo :)");
@@ -83,7 +86,6 @@ namespace stress.samples
 
             //wait for original workers to complete
             Task.WaitAll(t, t1);
-
         }
 
         public void OnlyReaders(CancellationToken cancelToken)
@@ -95,17 +97,15 @@ namespace stress.samples
             var readPattern = new StaticLoadPattern() { WorkerCount = 5 };
 
             readPattern.ExecuteAsync(new UnitTest(ConcurrentRead), workerStrategy, cancelToken).Wait();
-            
-
         }
 
         [Fact]
         public void ConcurrentRead()
         {
-            int key = this.rand.Next(100);
+            int key = _rand.Next(100);
             int val;
 
-            if(!this.dictoinary.TryGetValue(key, out val))
+            if (!_dictoinary.TryGetValue(key, out val))
             {
                 val = -1;
             }
@@ -116,14 +116,14 @@ namespace stress.samples
         [Fact]
         public void ConcurrentWrite()
         {
-            int key = this.rand.Next(100);
-            int val = this.rand.Next(100);
+            int key = _rand.Next(100);
+            int val = _rand.Next(100);
 
-            this.dictoinary[key] = val;
+            _dictoinary[key] = val;
             Console.WriteLine($"GET: {key} = {val}");
         }
 
-        ConcurrentDictionary<int, int> dictoinary = new ConcurrentDictionary<int, int>();
-        Random rand = new Random();
+        private ConcurrentDictionary<int, int> _dictoinary = new ConcurrentDictionary<int, int>();
+        private Random _rand = new Random();
     }
 }

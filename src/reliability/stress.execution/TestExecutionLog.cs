@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// 
+
+using System;
 using System.Threading;
 
 namespace stress.execution
@@ -12,31 +16,30 @@ namespace stress.execution
 
         public long ExecTime { get { return _execTime; } }
 
-        public int FailedCount { get { return this._failedCount; } }
-        public int PassedCount { get { return this._passedCount; } }
+        public int FailedCount { get { return _failedCount; } }
+        public int PassedCount { get { return _passedCount; } }
 
         public long BeginTest()
         {
-            Interlocked.Increment(ref this._currentCount);
+            Interlocked.Increment(ref _currentCount);
 
             return DateTime.Now.Ticks;
         }
 
         public void EndTest(long begin, bool pass)
         {
-            Interlocked.Add(ref this._execTime, DateTime.Now.Ticks - begin);
+            Interlocked.Add(ref _execTime, DateTime.Now.Ticks - begin);
 
-            Interlocked.Decrement(ref this._currentCount);
+            Interlocked.Decrement(ref _currentCount);
 
             if (pass)
             {
-                Interlocked.Increment(ref this._passedCount);
+                Interlocked.Increment(ref _passedCount);
             }
             else
             {
-                Interlocked.Increment(ref this._failedCount);
+                Interlocked.Increment(ref _failedCount);
             }
-
         }
     }
 }
