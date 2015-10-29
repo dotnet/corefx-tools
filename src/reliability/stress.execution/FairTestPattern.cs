@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// 
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,13 +18,13 @@ namespace stress.execution
 
         public void Initialize(int seed, IList<UnitTest> tests)
         {
-            this._rand = new Random(seed);
-            this._tests = tests;
+            _rand = new Random(seed);
+            _tests = tests;
         }
 
         public UnitTest GetNextTest()
         {
-            return this._tests[GetNextTestIndex(this._tests)];
+            return _tests[GetNextTestIndex(_tests)];
         }
 
         private int GetNextTestIndex(IList<UnitTest> tests)
@@ -36,12 +40,11 @@ namespace stress.execution
                 total += tests[i].Log.ExecTime + 1;
 
                 buckets[i] = total;
-
             }
-            
+
             byte[] randBytes = new byte[16];
 
-            this._rand.NextBytes(randBytes);
+            _rand.NextBytes(randBytes);
 
             long lRand = BitConverter.ToInt64(randBytes, 0) % total;
 
