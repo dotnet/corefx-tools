@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// 
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -88,13 +92,13 @@ namespace stress.generated
             StringBuilder arrayContentSnippet = new StringBuilder();
 
             StringBuilder instanceCreationSnippet = new StringBuilder();
-            
+
             int instIdx = 0;
 
             foreach (var uTest in this.LoadTest.UnitTests)
             {
-                this._includedAliases.Add(uTest.AssemblyAlias);
-                
+                _includedAliases.Add(uTest.AssemblyAlias);
+
                 if (!uTest.Method.IsStatic)
                 {
                     instanceCreationSnippet.Append($@"static {uTest.QualifiedTypeStr} inst{instIdx.ToString("X4")} = new {uTest.QualifiedTypeStr}();

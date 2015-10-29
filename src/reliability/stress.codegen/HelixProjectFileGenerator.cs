@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace stress.codegen
 {
-    public static class ToFProjectFileGenerator
+    public static class HelixProjectFileGenerator
     {
         public static void GenerateProjectFile(LoadTestInfo loadTest)
         {
@@ -122,6 +122,7 @@ namespace stress.codegen
     <CLRTestContractReference Include='System.Collections' />
     <CLRTestContractReference Include='System.Threading' />
     <CLRTestContractReference Include='System.Threading.Tasks' />
+    <CLRTestContractReference Include='Microsoft.DotNet.stress.execution' />
   </ItemGroup>
   <ItemGroup>{0}
   </ItemGroup>

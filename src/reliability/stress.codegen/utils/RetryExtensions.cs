@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// 
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +17,7 @@ namespace stress.codegen.utils
             //a list to aggregate excpetions caught on retry attempts
             List<Exception> innerExs = new List<Exception>();
 
-            for (; retryCount >= 0; )
+            for (; retryCount >= 0;)
             {
                 try
                 {
@@ -94,7 +98,7 @@ namespace stress.codegen.utils
             //a list to aggregate excpetions caught on retry attempts
             List<Exception> innerExs = new List<Exception>();
 
-            for (; retryCount >= 0; )
+            for (; retryCount >= 0;)
             {
                 try
                 {
@@ -128,7 +132,7 @@ namespace stress.codegen.utils
         }
 
         public static void Try(this Action action, int retryCount, int delay = 0)
-        {            
+        {
             //a list to aggregate excpetions caught on retry attempts
             List<Exception> innerExs = new List<Exception>();
 
@@ -164,6 +168,5 @@ namespace stress.codegen.utils
                 }
             }
         }
-
     }
 }

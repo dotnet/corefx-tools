@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// 
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,16 +12,16 @@ namespace triage.database
 {
     public static class TriageDb
     {
-        private static string g_connStr;
+        private static string s_connStr;
 
         public static void Init(string connStr)
         {
-            g_connStr = connStr;
+            s_connStr = connStr;
         }
 
         public static async Task AddDumpAsync(Dump dump)
         {
-            using (var context = new TriageDbContext(g_connStr))
+            using (var context = new TriageDbContext(s_connStr))
             {
                 await context.SaveChangesAsync();
             }
@@ -41,7 +45,7 @@ JOIN [BucketHits] AS [H]
 ";
         public static async Task<IEnumerable<BucketData>> GetBucketDataAsync(DateTime start, DateTime end)
         {
-            using (var context = new TriageDbContext(g_connStr))
+            using (var context = new TriageDbContext(s_connStr))
             {
                 return await context.Database.SqlQuery<BucketData>(BUCKET_DATA_QUERY, start, end).ToArrayAsync();
             }
@@ -56,7 +60,7 @@ WHERE [BucketId] = @p0
 ";
         public static async Task<IEnumerable<Dump>> GetBucketDataDumpsAysnc(BucketData bucketData)
         {
-            using (var context = new TriageDbContext(g_connStr))
+            using (var context = new TriageDbContext(s_connStr))
             {
                 return await context.Dumps.SqlQuery(BUCKET_DATA_DUMPS_QUERY, bucketData.BucketId, bucketData.StartTime, bucketData.EndTime).ToArrayAsync();
             }

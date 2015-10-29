@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// 
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -15,7 +19,7 @@ namespace stress.execution
         public void ShellExecuteStressTest()
         {
             //determin if we are on a unix/linux system
-            string file = File.Exists("/etc/issue") ? "stress.sh" : "stress.bat"; 
+            string file = File.Exists("/etc/issue") ? "stress.sh" : "stress.bat";
 
             ProcessStartInfo startInfo = new ProcessStartInfo() { FileName = file, UseShellExecute = true };
 
@@ -24,7 +28,7 @@ namespace stress.execution
 
             p.WaitForExit();
 
-            if(p.ExitCode != 0)
+            if (p.ExitCode != 0)
             {
                 throw new Exception($"Stress test process exited with non-zero exit code {p.ExitCode}"); // Assert.True(false, string.Format("Stress tests returned error code of {0}.", p.ExitCode));
             }

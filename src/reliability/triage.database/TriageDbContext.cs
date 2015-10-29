@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// 
+
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -11,7 +15,6 @@ namespace triage.database
     {
         public TriageDbContext(string connStr) : base(connStr)
         {
-
         }
 
         public DbSet<Bucket> Buckets { get; set; }
@@ -26,7 +29,6 @@ namespace triage.database
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Routine>().MapToStoredProcedures();
-            
         }
     }
 }

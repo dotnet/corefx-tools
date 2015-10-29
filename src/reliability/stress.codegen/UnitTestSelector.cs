@@ -1,4 +1,8 @@
-﻿using stress.codegen.utils;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// 
+
+using stress.codegen.utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,11 +21,11 @@ namespace stress.codegen
 
         public void Initialize(int seed, string[] paths, string[] patterns, string[] hintPaths)
         {
-            this._rand = new Random(seed);
+            _rand = new Random(seed);
 
-            this._candidates = this.FindAllTests(paths, patterns, hintPaths).ToArray();
+            _candidates = this.FindAllTests(paths, patterns, hintPaths).ToArray();
 
-            CodeGenOutput.Info($"Discovered {this._candidates.Length} unit tests, across {this._candidates.Select(t => t.AssemblyPath).Distinct().Count()} assemblies.");
+            CodeGenOutput.Info($"Discovered {_candidates.Length} unit tests, across {_candidates.Select(t => t.AssemblyPath).Distinct().Count()} assemblies.");
         }
 
         public IEnumerable<UnitTestInfo> NextUnitTests(int count)
@@ -33,10 +37,10 @@ namespace stress.codegen
                 //if this is the first call to NextTests or we've looped though candidate tests shuffle the test list
                 if ((_candidateIdx % _candidates.Length) == 0)
                 {
-                    this._candidates = this._candidates.OrderBy(t => this._rand.NextDouble()).ToArray();
+                    _candidates = _candidates.OrderBy(t => _rand.NextDouble()).ToArray();
                 }
 
-                yield return this._candidates[this._candidateIdx++ % _candidates.Length];
+                yield return _candidates[_candidateIdx++ % _candidates.Length];
             }
         }
 
@@ -55,7 +59,6 @@ namespace stress.codegen
                                 yield return test;
                             }
                         }
-
                     }
                 }
             }
@@ -76,7 +79,7 @@ namespace stress.codegen
             UnitTestInfo[] tests = loader.GetTests<XUnitTestDiscoverer>();
 
             //if no xunit tests were discovered and the assembly is an exe treat as a standalone exe test
-            if((tests == null || tests.Length == 0) && Path.GetExtension(path).ToLowerInvariant() == ".exe")
+            if ((tests == null || tests.Length == 0) && Path.GetExtension(path).ToLowerInvariant() == ".exe")
             {
                 tests = loader.GetTests<StandAloneTestDiscoverer>();
             }

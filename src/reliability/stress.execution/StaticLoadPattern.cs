@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// 
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,7 +14,7 @@ namespace stress.execution
     public class StaticLoadPattern : ILoadPattern
     {
         public int WorkerCount { get; set; }
-        
+
         public async Task ExecuteAsync(ITestPattern testPattern, IWorkerStrategy execStrategy, CancellationToken cancelToken)
         {
             SemaphoreSlim cancelSignaled = new SemaphoreSlim(0, 1);
@@ -40,6 +44,5 @@ namespace stress.execution
                 cancelSignaled.Wait();
             }
         }
-        
     }
 }

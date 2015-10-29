@@ -1,3 +1,7 @@
+// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// 
+
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -174,7 +178,6 @@ namespace stress.codegen
     }
     public class ExecutionFileGeneratorWindows : ISourceFileGenerator
     {
-
         public void GenerateSourceFile(LoadTestInfo loadTestInfo)// (string scriptName, string testName, Dictionary<string, string> envVars, string host = null)
         {
             string batchScriptPath = Path.Combine(loadTestInfo.SourceDirectory, "stress.bat");
@@ -211,18 +214,18 @@ namespace stress.codegen
                 stressScript.WriteLine();
                 stressScript.WriteLine();
 
-//                // Check the return code
-//                stressScript.WriteLine("if %_EXITCODE% EQU 0 goto :REPORT_PASS");
-//                stressScript.WriteLine("REM error processing");
-//                stressScript.WriteLine("echo JRS - Test Failed. Report the failure, call to do the initial dump analysis, zip up the directory and return that along with an event");
-//                stressScript.WriteLine("goto :END");
-//                stressScript.WriteLine();
-//                stressScript.WriteLine();
-//
-//                stressScript.WriteLine(":REPORT_PASS");
-//                stressScript.WriteLine("echo JRS - Test Passed. Report the pass.");
-//                stressScript.WriteLine();
-//                stressScript.WriteLine();
+                //                // Check the return code
+                //                stressScript.WriteLine("if %_EXITCODE% EQU 0 goto :REPORT_PASS");
+                //                stressScript.WriteLine("REM error processing");
+                //                stressScript.WriteLine("echo JRS - Test Failed. Report the failure, call to do the initial dump analysis, zip up the directory and return that along with an event");
+                //                stressScript.WriteLine("goto :END");
+                //                stressScript.WriteLine();
+                //                stressScript.WriteLine();
+                //
+                //                stressScript.WriteLine(":REPORT_PASS");
+                //                stressScript.WriteLine("echo JRS - Test Passed. Report the pass.");
+                //                stressScript.WriteLine();
+                //                stressScript.WriteLine();
 
                 // exit the script with the exit code from the process
                 stressScript.WriteLine(":END");

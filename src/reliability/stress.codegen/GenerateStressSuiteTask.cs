@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// 
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -49,16 +53,15 @@ namespace stress.codegen
                 LoadSuiteGenerator suiteGen = new LoadSuiteGenerator();
 
                 suiteGen.GenerateSuite(this.ParseSeed(), this.SuiteName, this.SuitePath, this.ParseTestPaths(), this.ParseSearchStrings(), this.ParseFrameworkPaths(), this.GetSuiteConfig());
-                
+
                 return this.Log.HasLoggedErrors;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 this.Log.LogErrorFromException(e);
 
                 return false;
             }
-
         }
 
         private LoadSuiteConfig GetSuiteConfig()
@@ -85,7 +88,7 @@ namespace stress.codegen
         {
             int seed;
 
-            if(this.Seed == null || !int.TryParse(this.Seed, out seed))
+            if (this.Seed == null || !int.TryParse(this.Seed, out seed))
             {
                 seed = new Random().Next();
             }
@@ -95,28 +98,27 @@ namespace stress.codegen
 
         private class TaskLogOutputWriter : IOutputWriter
         {
-            private TaskLoggingHelper logHelper;
+            private TaskLoggingHelper _logHelper;
 
             public TaskLogOutputWriter(TaskLoggingHelper logHelper)
             {
-                this.logHelper = logHelper;
+                _logHelper = logHelper;
             }
 
             public void WriteError(string message)
             {
-                this.logHelper.LogError(message);
+                _logHelper.LogError(message);
             }
 
             public void WriteInfo(string message)
             {
-                this.logHelper.LogMessage(message);
+                _logHelper.LogMessage(message);
             }
 
             public void WriteWarning(string message)
             {
-                this.logHelper.LogWarning(message);
+                _logHelper.LogWarning(message);
             }
         }
-
     }
 }

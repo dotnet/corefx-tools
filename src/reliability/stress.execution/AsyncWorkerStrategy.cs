@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// 
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,12 +13,11 @@ namespace stress.execution
 {
     public class AsyncWorkerStrategy : IWorkerStrategy
     {
-        
         public void SpawnWorker(ITestPattern pattern, CancellationToken cancelToken)
         {
             Task throwaway = this.ExecuteWorkerAsync(pattern, cancelToken);
         }
-        
+
         public async Task ExecuteWorkerAsync(ITestPattern pattern, CancellationToken cancelToken)
         {
             while (!cancelToken.IsCancellationRequested)
@@ -23,9 +26,8 @@ namespace stress.execution
 
                 await this.ExecuteTestAsync(test, cancelToken);
             }
-
         }
-        
+
         public async Task ExecuteTestAsync(UnitTest test, CancellationToken cancelToken)
         {
             TaskCompletionSource<object> executionCancelled = new TaskCompletionSource<object>();
@@ -38,6 +40,5 @@ namespace stress.execution
             //however this should only occur when the execution has run to duration so we return to allow the process to exit
             await Task.WhenAny(testTask, executionCancelled.Task);
         }
-
     }
 }

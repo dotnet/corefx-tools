@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// 
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,7 +25,6 @@ namespace stress.execution
             Task t = new Task(() => RunWorker(pattern, cancelToken), TaskCreationOptions.LongRunning);
 
             t.Start();
-            
         }
 
         private void RunWorker(ITestPattern pattern, CancellationToken cancelToken)
@@ -29,9 +32,8 @@ namespace stress.execution
             while (!cancelToken.IsCancellationRequested)
             {
                 UnitTest t = pattern.GetNextTest();
-                
-                t.Execute();
 
+                t.Execute();
             }
         }
 

@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// 
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -13,7 +17,7 @@ namespace stress.codegen
         {
             List<string> assmRefs = new List<string>();
 
-            foreach(var assmName in assemblyInfo.Assembly.GetReferencedAssemblies())
+            foreach (var assmName in assemblyInfo.Assembly.GetReferencedAssemblies())
             {
                 assmRefs.Add(assmName.Name);
             }

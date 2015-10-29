@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// 
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,11 +20,11 @@ namespace stress.console
         {
             get
             {
-                return this.command ?? Assembly.GetEntryAssembly().GetName().Name;
+                return _command ?? Assembly.GetEntryAssembly().GetName().Name;
             }
             set
             {
-                this.command = value;
+                _command = value;
             }
         }
 
@@ -35,7 +39,7 @@ namespace stress.console
 
             Func<CmdArgsBase, int> genFunc = (genArgs) => { return function((T)args); };
 
-            this.cmdFunctions.Add(command, new CmdFunction() { Args = args, Function = genFunc });
+            _cmdFunctions.Add(command, new CmdFunction() { Args = args, Function = genFunc });
         }
 
         public int InvokeFunctionWithArgs(string[] args)
@@ -56,7 +60,7 @@ namespace stress.console
 
             CmdFunction func;
 
-            if (!this.cmdFunctions.TryGetValue(args[0], out func))
+            if (!_cmdFunctions.TryGetValue(args[0], out func))
             {
                 Console.WriteLine();
 
@@ -97,11 +101,11 @@ namespace stress.console
             usagebuff.Append(this.Command);
             usagebuff.Append(" [/?[?]] ");
 
-            usagebuff.Append(string.Join(" | ", this.cmdFunctions.Keys.ToArray()));
+            usagebuff.Append(string.Join(" | ", _cmdFunctions.Keys.ToArray()));
 
             usagebuff.Append(" <funtion args>");
 
-            foreach (var cmdPair in this.cmdFunctions)
+            foreach (var cmdPair in _cmdFunctions)
             {
                 if (!string.IsNullOrEmpty(cmdPair.Value.Args.Description))
                 {
@@ -120,14 +124,13 @@ namespace stress.console
             Console.WriteLine(usagebuff);
 
             Console.WriteLine();
-
         }
 
         public void PrintDetailedUsage()
         {
             this.PrintUsage();
 
-            foreach (var funcArgs in cmdFunctions.Values.Select(c => c.Args))
+            foreach (var funcArgs in _cmdFunctions.Values.Select(c => c.Args))
             {
                 Console.WriteLine();
 
@@ -135,9 +138,9 @@ namespace stress.console
             }
         }
 
-        private Dictionary<string, CmdFunction> cmdFunctions = new Dictionary<string, CmdFunction>(StringComparer.OrdinalIgnoreCase);
+        private Dictionary<string, CmdFunction> _cmdFunctions = new Dictionary<string, CmdFunction>(StringComparer.OrdinalIgnoreCase);
 
-        private string command;
+        private string _command;
 
         private class CmdFunction
         {
@@ -158,11 +161,11 @@ namespace stress.console
         {
             get
             {
-                return this.command ?? Assembly.GetEntryAssembly().GetName().Name;
+                return _command ?? Assembly.GetEntryAssembly().GetName().Name;
             }
             set
             {
-                this.command = value;
+                _command = value;
             }
         }
 
@@ -176,7 +179,7 @@ namespace stress.console
 
             this.PopulateArgValues();
 
-            return this.prereqMet;
+            return _prereqMet;
         }
 
         private void LoadArgProps()
@@ -195,7 +198,7 @@ namespace stress.console
                         throw new ArgumentException(string.Format("Invalid CmdArgAttribute: The arg property {0} is not assignable from type type {1}.", prop.Name, attr.Type.FullName));
                     }
 
-                    this.settingProps.Add(attr, prop);
+                    _settingProps.Add(attr, prop);
 
                     //if the cmdarg is an ordinal cmdarg add it to ordinalList
                     if (attr.IsOrdinal())
@@ -239,20 +242,20 @@ namespace stress.console
             //if there are optional ordinal args keyed args are not allowed
             //if there are keyed args throw an exception
             //detect keyed args by the difference in length between ordinalList and this.settingsProps
-            if (hasOptionalOrdinal && (this.settingProps.Count != ordinalList.Count))
+            if (hasOptionalOrdinal && (_settingProps.Count != ordinalList.Count))
             {
                 throw new ArgumentException("Invalid CmdArgAttribute: Keyed args are not permitted when using optional ordinal arguments");
             }
 
             //store the ordinal args
-            this.ordinalArgs = ordinalList.ToArray();
+            _ordinalArgs = ordinalList.ToArray();
         }
 
         public void PrintSettings()
         {
             Console.WriteLine("Settings:");
 
-            foreach (var entry in this.settings)
+            foreach (var entry in _settings)
             {
                 Console.WriteLine("\t{0}:\t{1}", entry.Key, entry.Value);
             }
@@ -262,7 +265,7 @@ namespace stress.console
         {
             get
             {
-                return this.prereqMet;
+                return _prereqMet;
             }
         }
 
@@ -277,10 +280,9 @@ namespace stress.console
 
 
             //print usage of the ordinal args
-            for (int i = 0; i < this.ordinalArgs.Length; i++)
+            for (int i = 0; i < _ordinalArgs.Length; i++)
             {
-
-                if (!this.ordinalArgs[i].Required)
+                if (!_ordinalArgs[i].Required)
                 {
                     usagebuff.Append("[");
                 }
@@ -290,9 +292,9 @@ namespace stress.console
                 }
 
                 //if no value moniker was specifed use %index instead
-                usagebuff.Append(this.ordinalArgs[i].ValueMoniker ?? "%" + i.ToString());
+                usagebuff.Append(_ordinalArgs[i].ValueMoniker ?? "%" + i.ToString());
 
-                if (!this.ordinalArgs[i].Required)
+                if (!_ordinalArgs[i].Required)
                 {
                     usagebuff.Append("]");
                 }
@@ -305,7 +307,7 @@ namespace stress.console
             }
 
             //print usage of the keyed args
-            foreach (CmdArgAttribute attr in this.settingProps.Keys.OrderByDescending(a => a.Required))
+            foreach (CmdArgAttribute attr in _settingProps.Keys.OrderByDescending(a => a.Required))
             {
                 if (!attr.IsOrdinal())
                 {
@@ -339,14 +341,14 @@ namespace stress.console
             usagebuff.Clear();
 
             //print the details of the ordinal arguments
-            foreach (var attr in this.ordinalArgs)
+            foreach (var attr in _ordinalArgs)
             {
                 this.AppendArgDetailsToBuff(attr, usagebuff);
             }
 
 
             //print the keyed arg details
-            foreach (CmdArgAttribute attr in this.settingProps.Keys.OrderByDescending(a => a.Required))
+            foreach (CmdArgAttribute attr in _settingProps.Keys.OrderByDescending(a => a.Required))
             {
                 //only print details of the keyed args as we printed the ordinal arg details above
                 if (attr.IsKeyed())
@@ -385,7 +387,6 @@ namespace stress.console
                     usagebuff.Append(string.Join(" | /", attr.AlternateKeys));
 
                     usagebuff.Append(")");
-
                 }
 
                 usagebuff.Append(":\n      ");
@@ -397,7 +398,7 @@ namespace stress.console
 
         protected virtual bool PopulateArgValues()
         {
-            foreach (var entry in this.settingProps)
+            foreach (var entry in _settingProps)
             {
                 object val;
 
@@ -412,11 +413,11 @@ namespace stress.console
                 }
                 else
                 {
-                    this.prereqMet &= !entry.Key.Required;
+                    _prereqMet &= !entry.Key.Required;
                 }
             }
 
-            return this.prereqMet;
+            return _prereqMet;
         }
 
         protected bool FindArgValue(CmdArgAttribute argAttr, out object val)
@@ -425,7 +426,7 @@ namespace stress.console
 
             val = null;
 
-            if (found = this.settings.ContainsKey(argAttr.Key))
+            if (found = _settings.ContainsKey(argAttr.Key))
             {
                 val = this.GetSettingValue(argAttr.Key, argAttr.Type);
             }
@@ -434,7 +435,7 @@ namespace stress.console
             {
                 for (int i = 0; i < argAttr.AlternateKeys.Length && !found; i++)
                 {
-                    if (found = this.settings.ContainsKey(argAttr.AlternateKeys[i]))
+                    if (found = _settings.ContainsKey(argAttr.AlternateKeys[i]))
                     {
                         val = this.GetSettingValue(argAttr.AlternateKeys[i], argAttr.Type);
                     }
@@ -482,7 +483,7 @@ namespace stress.console
             //i.e. you have consoleapp.exe [/diag[:true | false]] the user can specify /diag as a shortcut to /diag:true
             if (s == null)
             {
-                val = this.settings.ContainsKey(key);
+                val = _settings.ContainsKey(key);
             }
             else
             {
@@ -532,7 +533,7 @@ namespace stress.console
         {
             string val;
 
-            this.settings.TryGetValue(key, out val);
+            _settings.TryGetValue(key, out val);
 
             return val;
         }
@@ -544,7 +545,7 @@ namespace stress.console
             {
                 this.PrintUsage();
 
-                this.prereqMet = false;
+                _prereqMet = false;
 
                 return;
             }
@@ -555,13 +556,13 @@ namespace stress.console
                 string key, val;
 
                 //if all the oridinal args don't have value yet, add the full value as a ordinal arg
-                if (i < this.ordinalArgs.Length)
+                if (i < _ordinalArgs.Length)
                 {
-                    key = this.ordinalArgs[i].Key;
+                    key = _ordinalArgs[i].Key;
 
                     val = args[i];
 
-                    this.settings[key] = val;
+                    _settings[key] = val;
                 }
                 //otherwise treat as a keyed arg should start with '/' or '-'
                 else if (s.StartsWith("/") || s.StartsWith("-"))
@@ -580,17 +581,16 @@ namespace stress.console
 
                         //if ':' is the last character in the arg add the key to the dictionary with a value of string.Empty 
                         val = (splitIndex == (s.Length - 1)) ? string.Empty : s.Substring(splitIndex + 1, s.Length - splitIndex - 1);
-
                     }
 
-                    this.settings[key] = val;
+                    _settings[key] = val;
                 }
                 //if there is an argument after the ordinal arguments which doesn't have a 
                 //proper key ie (-<key>[:val] or /<key>[:val] then the validation of the args 
                 //should fail set prereqMet to false
                 else
                 {
-                    this.prereqMet = false;
+                    _prereqMet = false;
                 }
             }
 
@@ -614,10 +614,9 @@ namespace stress.console
 
                         //if ':' is the last character in the arg add the key to the dictionary with a value of string.Empty 
                         val = (splitIndex == (s.Length - 1)) ? string.Empty : s.Substring(splitIndex + 1, s.Length - splitIndex - 1);
-
                     }
 
-                    this.settings[key] = val;
+                    _settings[key] = val;
                 }
             }
         }
@@ -626,20 +625,19 @@ namespace stress.console
         {
             foreach (var key in ConfigurationManager.AppSettings.AllKeys)
             {
-                this.settings[key] = ConfigurationManager.AppSettings[key];
-
+                _settings[key] = ConfigurationManager.AppSettings[key];
             }
         }
 
-        private bool prereqMet = true;
+        private bool _prereqMet = true;
 
-        private string command = null;
+        private string _command = null;
 
-        private Dictionary<string, string> settings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        private Dictionary<CmdArgAttribute, PropertyInfo> settingProps = new Dictionary<CmdArgAttribute, PropertyInfo>();
-        private CmdArgAttribute[] ordinalArgs = new CmdArgAttribute[0];
+        private Dictionary<string, string> _settings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private Dictionary<CmdArgAttribute, PropertyInfo> _settingProps = new Dictionary<CmdArgAttribute, PropertyInfo>();
+        private CmdArgAttribute[] _ordinalArgs = new CmdArgAttribute[0];
 
-        private int ordinalCount = 0;
+        private int _ordinalCount = 0;
     }
 
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
@@ -731,6 +729,4 @@ namespace stress.console
             return this.Index < 0;
         }
     }
-
-
 }

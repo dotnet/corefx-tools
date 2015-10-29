@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// 
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -32,7 +36,7 @@ namespace stress.codegen
     {
         public string Name { get { return System.IO.Path.GetFileName(this.Path); } }
 
-        public string Path { get; set; }    
+        public string Path { get; set; }
     }
 
     [Serializable]
@@ -59,15 +63,14 @@ namespace stress.codegen
         public bool IsGenericMethodDefinition { get; set; }
 
         public string Name { get; set; }
-
     }
 
     [Serializable]
     public class UnitTestInfo
     {
-        private static int g_AliasIdx = 0;
-        private static object g_AliasLock = new object();
-        private static Dictionary<string, string> g_aliasTable = new Dictionary<string, string>();
+        private static int s_aliasIdx = 0;
+        private static object s_aliasLock = new object();
+        private static Dictionary<string, string> s_aliasTable = new Dictionary<string, string>();
 
         //public Assembly TestAssembly { get; set; }
 
@@ -108,7 +111,7 @@ namespace stress.codegen
         }
 
         public string SkipReason { get; set; }
-        
+
         public bool IsLoadTestCandidate()
         {
             if (this.SkipReason != null)
@@ -139,19 +142,17 @@ namespace stress.codegen
         {
             string alias = null;
 
-            lock(g_AliasLock)
+            lock (s_aliasLock)
             {
-                if(!g_aliasTable.TryGetValue(assemblyPath, out alias))
+                if (!s_aliasTable.TryGetValue(assemblyPath, out alias))
                 {
-                    alias = "ASSM_" + g_AliasIdx++.ToString("X8");
+                    alias = "ASSM_" + s_aliasIdx++.ToString("X8");
 
-                    g_aliasTable[assemblyPath] = alias;
+                    s_aliasTable[assemblyPath] = alias;
                 }
             }
 
             return alias;
         }
-
-        
     }
 }
