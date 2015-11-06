@@ -2,13 +2,6 @@
   <Import Project="..\dir.props" />
   
   <PropertyGroup>
-      <CleanDependsOn>
-          $(CleanDependsOn);
-          CleanReliablityNugetPackages
-      </CleanDependsOn>
-  </PropertyGroup>
-  
-  <PropertyGroup>
       <NugetPackageOutDir>$(BinDir)\packages</NugetPackageOutDir>
       <ReliabilityNugetVersion>1.0.0.1</ReliabilityNugetVersion>
   </PropertyGroup>
