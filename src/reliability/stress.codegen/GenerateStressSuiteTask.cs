@@ -9,11 +9,14 @@ using System.Text;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using stress.codegen.utils;
+using System.Diagnostics;
 
 namespace stress.codegen
 {
     public class GenerateStressSuiteTask : Task
     {
+        public bool DebugHang { get; set; }
+
         public string Seed { get; set; }
 
         [Required]
@@ -42,10 +45,18 @@ namespace stress.codegen
         /// <summary>
         /// Path to the json config file containing the load suite configuration details
         /// </summary>
+        [Required]
         public string ConfigPath { get; set; }
 
         public override bool Execute()
         {
+            if (DebugHang)
+            {
+                this.Log.LogMessageFromText($"PID:{Process.GetCurrentProcess().Id} Attach debugger now...", MessageImportance.High);
+                
+                while (DebugHang) { };
+            }
+
             try
             {
                 CodeGenOutput.Redirect(new TaskLogOutputWriter(this.Log));
