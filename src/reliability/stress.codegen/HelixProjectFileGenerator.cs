@@ -15,10 +15,14 @@ namespace stress.codegen
     {
         public static void GenerateProjectFile(LoadTestInfo loadTest)
         {
-            string refSnippet = GenerateReferencesSnippet(loadTest);
+            string refSnippet = GenerateTestReferencesSnippet(loadTest);
+
             string fxSnippet = GenerateFrameworkReferencesSnippet(loadTest);
+
             string itemSnippet = GenerateSourceFileItemsSnippet(loadTest);
-            string projFileContent = string.Format(PROJECT_TEMPLATE, refSnippet, itemSnippet); //, fxSnippet);
+
+            //format the project template {0} source files, {1} framework references, {2} test references
+            string projFileContent = string.Format(PROJECT_TEMPLATE, itemSnippet, fxSnippet, refSnippet);
 
             File.WriteAllText(Path.Combine(loadTest.SourceDirectory, loadTest.TestName + ".csproj"), projFileContent);
         }
@@ -49,19 +53,19 @@ namespace stress.codegen
             return snippet.ToString();
         }
 
-        private static string GenerateReferencesSnippet(LoadTestInfo loadTest)
+        private static string GenerateTestReferencesSnippet(LoadTestInfo loadTest)
         {
             HashSet<string> uniqueAssemblies = new HashSet<string>();
 
             StringBuilder snippet = new StringBuilder();
             foreach (var test in loadTest.UnitTests)
             {
-                if (uniqueAssemblies.Add(test.AssemblyPath))
+                if (uniqueAssemblies.Add(test.AssemblyName))
                 {
                     string refSnippet = $@"
     <Reference Include='{test.AssemblyName}'>
       <HintPath>$(MSBuildThisFileDirectory)\refs\{test.AssemblyName}</HintPath>
-      <Aliases>{UnitTestInfo.GetAssemblyAlias(test.AssemblyPath)}</Aliases>
+      <Aliases>{UnitTestInfo.GetAssemblyAlias(test.AssemblyName)}</Aliases>
       <NotForTests>true</NotForTests>
     </Reference>";
 
@@ -70,12 +74,12 @@ namespace stress.codegen
 
                 foreach (var assmref in test.ReferenceInfo.ReferencedAssemblies)
                 {
-                    if (uniqueAssemblies.Add(assmref.Path))
+                    if (uniqueAssemblies.Add(assmref.Name))
                     {
                         string refSnippet = $@"
     <Reference Include='{assmref.Name}'>
       <HintPath>$(MSBuildThisFileDirectory)\refs\{assmref.Name}</HintPath>
-      <Aliases>{UnitTestInfo.GetAssemblyAlias(assmref.Path)}</Aliases>
+      <Aliases>{UnitTestInfo.GetAssemblyAlias(assmref.Name)}</Aliases>
       <NotForTests>true</NotForTests>
     </Reference>";
 
@@ -112,28 +116,18 @@ namespace stress.codegen
     <CLRTestKind>BuildAndRun</CLRTestKind>
     <CLRTestSuite>Weekly</CLRTestSuite>
   </PropertyGroup>
-  <ItemGroup>
-    {1}
-  </ItemGroup>
-  <ItemGroup>
-    <CLRTestContractReference Include='System.Runtime' />
-    <CLRTestContractReference Include='System.Runtime.Extensions' />
-    <CLRTestContractReference Include='System.Linq' />
-    <CLRTestContractReference Include='System.Collections' />
-    <CLRTestContractReference Include='System.Threading' />
-    <CLRTestContractReference Include='System.Threading.Tasks' />
-    <CLRTestContractReference Include='Microsoft.DotNet.stress.execution' />
-  </ItemGroup>
+  <!-- Source Code Files -->
   <ItemGroup>{0}
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include='$(CLRTestStoreRoot)\stress\common\stress.execution.csproj'>
-      <Project>{{7E6BD405-347A-4DDE-AE19-43372FA7D697}}</Project>
-    </ProjectReference>
+  <!-- Framework References -->
+  <ItemGroup>{1}
+  </ItemGroup>
+  <!-- Test Assembly References -->
+  <ItemGroup>{2}
   </ItemGroup>
   <Import Project='$(CLRTestRoot)\CLRTest.targets' />
 </Project>";
 
-        private static readonly string[] s_systemRefs = new string[] { "System.Runtime", "System.Runtime.Extensions", "System.Linq", "System.Threading", "System.Threading.Tasks", "System.Collections" };
+        private static readonly string[] s_systemRefs = new string[] { "System.Runtime", "System.Runtime.Extensions", "System.Linq", "System.Threading", "System.Threading.Tasks", "System.Collections", "Microsoft.DotNet.stress.execution" };
     }
 }

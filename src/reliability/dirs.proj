@@ -10,8 +10,7 @@
     <Project Include="stress\stress.csproj" />
     <Project Include="stress.codegen\stress.codegen.csproj" />
     <Project Include="stress.execution\stress.execution.csproj" />
-    <!--Project Include="stress.samples\stress.samples.csproj" /-->
-    <Project Include="stress.xunitshim\stress.xunitshim.csproj" />
+    <!--<Project Include="stress.samples\stress.samples.csproj" />-->
     <Project Include="triage\triage.csproj" />
     <Project Include="triage.analysis\triage.analysis.csproj" />
     <Project Include="triage.database\triage.database.csproj" />

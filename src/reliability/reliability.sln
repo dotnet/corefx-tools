@@ -25,6 +25,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "packages", "packages", "{8F
 		stress.execution.nuspec = stress.execution.nuspec
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{A8C407B3-006E-42AE-A1C6-2D9B92DE971D}"
+	ProjectSection(SolutionItems) = preProject
+		dir.props = dir.props
+		dir.targets = dir.targets
+		dirs.proj = dirs.proj
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

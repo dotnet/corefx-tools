@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -66,14 +67,18 @@ namespace stress.codegen
 
         private UnitTestInfo[] GetTests(string path, string[] hintPaths)
         {
-            AppDomain loaderDomain = AppDomain.CreateDomain(path);
+            var codeGenDllPath = Assembly.GetExecutingAssembly().Location;
 
-            var loader = (TestAssemblyLoader)loaderDomain.CreateInstanceAndUnwrap(Assembly.GetExecutingAssembly().FullName, typeof(TestAssemblyLoader).FullName);
+            var codegenDir = Path.GetDirectoryName(codeGenDllPath);
+            
+            AppDomain loaderDomain = AppDomain.CreateDomain(path, AppDomain.CurrentDomain.Evidence, new AppDomainSetup() { ApplicationBase = codegenDir });
+            
+            var loader = (TestAssemblyLoader)loaderDomain.CreateInstanceFromAndUnwrap(codeGenDllPath, typeof(TestAssemblyLoader).FullName);
 
             loader.InitializeLifetimeService();
 
             HashSet<string> hints = new HashSet<string>(hintPaths) { Path.GetDirectoryName(path) };
-
+            
             loader.Load(path, hints.ToArray());
 
             UnitTestInfo[] tests = loader.GetTests<XUnitTestDiscoverer>();
@@ -86,13 +91,9 @@ namespace stress.codegen
 
             AppDomain.Unload(loaderDomain);
 
-            if (tests.Length == 0)
+            if (tests.Length > 0)
             {
-                CodeGenOutput.Warning($"{path}:\n {tests.Length} tests discovered");
-            }
-            else
-            {
-                CodeGenOutput.Info($"{path}:\n {tests.Length} tests discovered");
+                CodeGenOutput.Info($"{path}: {tests.Length} tests discovered");
             }
 
             return tests;
