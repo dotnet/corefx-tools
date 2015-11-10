@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 // 
 
+#pragma warning disable 3016
+
 using stress.codegen;
 using stress.execution;
 using System;
@@ -51,7 +53,7 @@ namespace stress.console
 
         [CmdArg(typeof(string[]), "f", "filemasks", Required = false, Default = new string[] { "*.dll" }, ValueMoniker = "filemask[;filemaskN...]", Description = "Semicolon separated list of file search strings for test binaries")]
         public string[] FileMasks { get; set; }
-
+        
         [CmdArg(typeof(string[]), "h", "hintpaths", Required = false, Default = new string[] { }, ValueMoniker = "hintpath[;hintpathN...]", Description = "Semicolon separated list of hint paths for test binary references")]
         public string[] HintPaths { get; set; }
 
