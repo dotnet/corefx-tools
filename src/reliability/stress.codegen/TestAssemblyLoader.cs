@@ -96,13 +96,11 @@ namespace stress.codegen
                 {
                     try
                     {
-                        string assmFile = new AssemblyName(args.Name).Name + ".dll";
-                        string hintPath = Path.Combine(this.HintPaths[i], assmFile);
-                        if (File.Exists(hintPath))
-                        {
-                            return Assembly.ReflectionOnlyLoadFrom(hintPath);
-                        }
-                        if (File.Exists(Path.ChangeExtension(hintPath, ".exe")))
+                        string assmDllFile = new AssemblyName(args.Name).Name + ".dll";
+                        string assmExeFile = new AssemblyName(args.Name).Name + ".exe";
+                        string hintPath = Directory.EnumerateFiles(this.HintPaths[i], assmDllFile, SearchOption.AllDirectories).FirstOrDefault() ?? Directory.EnumerateFiles(this.HintPaths[i], assmExeFile, SearchOption.AllDirectories).FirstOrDefault();
+
+                        if(hintPath != null)
                         {
                             return Assembly.ReflectionOnlyLoadFrom(hintPath);
                         }

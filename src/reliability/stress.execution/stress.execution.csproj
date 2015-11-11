@@ -16,6 +16,7 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>profile7</TargetFrameworkProfile>
     <ImplicitlyExpandTargetFramework>false</ImplicitlyExpandTargetFramework>
+    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <SccProjectName>SAK</SccProjectName>
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>
