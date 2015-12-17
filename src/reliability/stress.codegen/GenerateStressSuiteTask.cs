@@ -15,7 +15,7 @@ namespace stress.codegen
 {
     public class GenerateStressSuiteTask : Task
     {
-        public bool DebugHang { get; set; }
+        public bool DebugWaitForInput { get; set; }
 
         public string Seed { get; set; }
 
@@ -50,11 +50,11 @@ namespace stress.codegen
 
         public override bool Execute()
         {
-            if (DebugHang)
+            if (DebugWaitForInput)
             {
-                this.Log.LogMessageFromText($"PID:{Process.GetCurrentProcess().Id} Attach debugger now...", MessageImportance.High);
-                
-                while (DebugHang) { };
+                this.Log.LogMessageFromText($"PID:{Process.GetCurrentProcess().Id} Attach debugger now.", MessageImportance.High);
+
+                while (DebugWaitForInput) ;
             }
 
             try
@@ -65,7 +65,8 @@ namespace stress.codegen
 
                 suiteGen.GenerateSuite(this.ParseSeed(), this.SuiteName, this.SuitePath, this.ParseTestPaths(), this.ParseSearchStrings(), this.ParseFrameworkPaths(), this.GetSuiteConfig());
 
-                return this.Log.HasLoggedErrors;
+                return true;
+                //return this.Log.HasLoggedErrors;
             }
             catch (Exception e)
             {

@@ -33,9 +33,9 @@ namespace stress.codegen
                     {
                         TestName = suiteName + "_" + suiteTestCount.ToString("X4"),
                         Duration = loadTestConfig.Duration,
-                        LoadPatternType = Type.GetType(loadTestConfig.LoadPattern),
-                        TestPatternType = Type.GetType(loadTestConfig.TestPattern),
-                        WorkerStrategyType = Type.GetType(loadTestConfig.WorkerStrategy),
+                        LoadPatternType = typeof(StaticLoadPattern),                          //Type.GetType(loadTestConfig.LoadPattern),
+                        TestPatternType = typeof(RandomTestPattern),                          //Type.GetType(loadTestConfig.TestPattern),
+                        WorkerStrategyType = typeof(DedicatedThreadWorkerStrategy),           //Type.GetType(loadTestConfig.WorkerStrategy),
                         WorkerCount = loadTestConfig.NumWorkers,
                         EnvironmentVariables = loadTestConfig.EnvironmentVariables,
                         SuiteConfig = config,

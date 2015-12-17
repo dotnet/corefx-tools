@@ -88,7 +88,7 @@ namespace stress.codegen
         {
             get
             {
-                return GetAssemblyAlias(this.AssemblyPath);
+                return GetAssemblyAlias(this.AssemblyName);
             }
         }
 
@@ -138,17 +138,17 @@ namespace stress.codegen
 
 
 
-        public static string GetAssemblyAlias(string assemblyPath)
+        public static string GetAssemblyAlias(string assemblyName)
         {
             string alias = null;
 
             lock (s_aliasLock)
             {
-                if (!s_aliasTable.TryGetValue(assemblyPath, out alias))
+                if (!s_aliasTable.TryGetValue(assemblyName, out alias))
                 {
                     alias = "ASSM_" + s_aliasIdx++.ToString("X8");
 
-                    s_aliasTable[assemblyPath] = alias;
+                    s_aliasTable[Path.GetFileName(assemblyName)] = alias;
                 }
             }
 
