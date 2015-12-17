@@ -99,9 +99,15 @@ namespace stress.codegen
             foreach (var fxref in loadTest.UnitTests.SelectMany(t => t.ReferenceInfo.FrameworkReferences).Union(s_systemRefs).Distinct())
             {
                 string refSnippet = $@"
-     <CLRTestContractReference Include='{fxref}' />";
+    <CLRTestContractReference Include='{fxref}' />";
                 snippet.Append(refSnippet);
             }
+
+            snippet.Append(@"
+    <CLRTestContractReference Include='Microsoft.DotNet.stress.execution'>
+      <SkipSupportVerification>true</SkipSupportVerification>
+      <Version>1.0.0-alpha-00003</Version>
+    </CLRTestContractReference>");
 
             return snippet.ToString();
         }
@@ -128,6 +134,6 @@ namespace stress.codegen
   <Import Project='$(CLRTestRoot)\CLRTest.targets' />
 </Project>";
 
-        private static readonly string[] s_systemRefs = new string[] { "System.Runtime", "System.Runtime.Extensions", "System.Linq", "System.Threading", "System.Threading.Tasks", "System.Collections", "Microsoft.DotNet.stress.execution" };
+        private static readonly string[] s_systemRefs = new string[] { "System.Runtime", "System.Runtime.Extensions", "System.Linq", "System.Threading", "System.Threading.Tasks", "System.Collections" };
     }
 }
