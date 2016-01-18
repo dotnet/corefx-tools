@@ -92,12 +92,39 @@ namespace stress.codegen
             HashSet<string> uniqueAssemblies = new HashSet<string>();
 
             StringBuilder snippet = new StringBuilder();
-            foreach (var fxref in loadTest.UnitTests.SelectMany(t => t.ReferenceInfo.FrameworkReferences).Union(s_systemRefs).Distinct())
+
+            AssemblyReferenceSet fxRefSet = new AssemblyReferenceSet();
+
+            foreach (var testfxRefs in loadTest.UnitTests.Select(t => t.ReferenceInfo.FrameworkReferences))
             {
-                string refSnippet = $@"
-     <CLRTestContractReference Include='{fxref}' />";
+                fxRefSet.UnionWith(testfxRefs);
+            }
+
+            foreach (var fxref in fxRefSet)
+            {
+                string refSnippet;
+
+                if (fxref.Version != "4.0.0.0")
+                {
+                    refSnippet = $@"
+    <CLRTestContractReference Include='{Path.GetFileNameWithoutExtension(fxref.Name)}'/>";
+                }
+                else
+                {
+                    refSnippet = $@"
+    <CLRTestContractReference Include='{Path.GetFileNameWithoutExtension(fxref.Name)}'>
+      <Version>{fxref.Version}</Version>
+    </CLRTestContractReference>";
+                }
+
                 snippet.Append(refSnippet);
             }
+
+            snippet.Append(@"
+    <CLRTestContractReference Include='Microsoft.DotNet.stress.execution'>
+      <SkipSupportVerification>true</SkipSupportVerification>
+      <Version>1.0.0-alpha-00003</Version>
+    </CLRTestContractReference>");
 
             return snippet.ToString();
         }

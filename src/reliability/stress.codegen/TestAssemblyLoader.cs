@@ -100,7 +100,7 @@ namespace stress.codegen
                         string assmExeFile = new AssemblyName(args.Name).Name + ".exe";
                         string hintPath = Directory.EnumerateFiles(this.HintPaths[i], assmDllFile, SearchOption.AllDirectories).FirstOrDefault() ?? Directory.EnumerateFiles(this.HintPaths[i], assmExeFile, SearchOption.AllDirectories).FirstOrDefault();
 
-                        if(hintPath != null)
+                        if (hintPath != null)
                         {
                             return Assembly.ReflectionOnlyLoadFrom(hintPath);
                         }
@@ -120,11 +120,11 @@ namespace stress.codegen
             {
                 if (IsFrameworkAssembly(assembly))
                 {
-                    _assembly.ReferenceInfo.FrameworkReferences.Add(assembly.GetName().Name);
+                    _assembly.ReferenceInfo.FrameworkReferences.Add(new AssemblyReference() { Path = assembly.Location, Version = assembly.GetName().Version.ToString() });
                 }
                 else
                 {
-                    _assembly.ReferenceInfo.ReferencedAssemblies.Add(new AssemblyReference() { Path = assembly.Location });
+                    _assembly.ReferenceInfo.ReferencedAssemblies.Add(new AssemblyReference() { Path = assembly.Location, Version = assembly.GetName().Version.ToString() });
                 }
             }
         }
@@ -135,7 +135,7 @@ namespace stress.codegen
 
             var attrDataList = assembly.GetCustomAttributesData();
 
-            bool isFxAssm = assmName.StartsWith("System.") && assembly.GetName().Version.ToString() != "999.999.999.999";
+            bool isFxAssm = assmName.StartsWith("System.") && assembly.GetName().Version.ToString() != "999.999.999.999" && !s_knownTestRefs.Contains(assmName);
 
             return isFxAssm;
         }
@@ -143,5 +143,6 @@ namespace stress.codegen
 
         internal static Dictionary<string, string> g_ResolvedAssemblies = new Dictionary<string, string>();
         private static HashSet<string> s_loadAttempted = new HashSet<string>();
+        private static HashSet<string> s_knownTestRefs = new HashSet<string>(new string[] { "System.Xml.RW.XmlReaderLib" });
     }
 }
