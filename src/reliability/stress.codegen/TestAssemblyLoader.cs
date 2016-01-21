@@ -37,6 +37,11 @@ namespace stress.codegen
             try
             {
                 _assembly = new TestAssemblyInfo() { Assembly = Assembly.ReflectionOnlyLoadFrom(this.AssemblyPath), ReferenceInfo = new TestReferenceInfo() };
+
+                foreach(var refName in _assembly.Assembly.GetReferencedAssemblies())
+                {
+                    Assembly.ReflectionOnlyLoad(refName.FullName);
+                }
             }
             catch (Exception e)
             {
@@ -66,7 +71,7 @@ namespace stress.codegen
         private Assembly IsoDomain_ReflectionOnlyAssemblyResolve(object sender, ResolveEventArgs args)
         {
             Assembly assm = null;
-            if (s_loadAttempted.Add(args.Name))
+            if (!s_loaded.TryGetValue(args.Name, out assm))
             {
                 try
                 {
@@ -74,18 +79,23 @@ namespace stress.codegen
 
                     this.AddTestAssemblyReference(assm);
 
+                    s_loaded[args.Name] = assm;
+
                     return assm;
                 }
                 catch
                 {
                     assm = ReflectionOnlyAssemblyResolveFromHintPaths(sender, args);
+                    if (assm != null)
+                    {
+                        this.AddTestAssemblyReference(assm);
 
-                    this.AddTestAssemblyReference(assm);
-
+                        s_loaded[args.Name] = assm;
+                    }
                     return assm;
                 }
             }
-            return null;
+            return assm;
         }
 
         private Assembly ReflectionOnlyAssemblyResolveFromHintPaths(object sender, ResolveEventArgs args)
@@ -142,7 +152,7 @@ namespace stress.codegen
 
 
         internal static Dictionary<string, string> g_ResolvedAssemblies = new Dictionary<string, string>();
-        private static HashSet<string> s_loadAttempted = new HashSet<string>();
+        private static Dictionary<string, Assembly> s_loaded = new Dictionary<string, Assembly>();
         private static HashSet<string> s_knownTestRefs = new HashSet<string>(new string[] { "System.Xml.RW.XmlReaderLib" });
     }
 }

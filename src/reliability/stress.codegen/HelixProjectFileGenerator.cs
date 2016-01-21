@@ -2,10 +2,12 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 // 
 
+using stress.execution;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -139,11 +141,10 @@ namespace stress.codegen
 
                 snippet.Append(refSnippet);
             }
-
             snippet.Append(@"
     <CLRTestContractReference Include='Microsoft.DotNet.stress.execution'>
       <SkipSupportVerification>true</SkipSupportVerification>
-      <Version>1.0.0-alpha-00003</Version>
+      <Version>1.0.0-alpha-00004</Version>
     </CLRTestContractReference>");
 
             return snippet.ToString();

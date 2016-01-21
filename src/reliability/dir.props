@@ -2,7 +2,7 @@
   <Import Project="..\dir.props" />
   
   <PropertyGroup>
-      <NugetPackageOutDir>$(BinDir)\packages</NugetPackageOutDir>
-      <ReliabilityNugetVersion>1.0.0.1</ReliabilityNugetVersion>
+      <NugetPackageOutDir>$(BinDir)packages</NugetPackageOutDir>
+      <ReliabilityNugetVersion>1.0.0-alpha-00004</ReliabilityNugetVersion>
   </PropertyGroup>
 </Project>

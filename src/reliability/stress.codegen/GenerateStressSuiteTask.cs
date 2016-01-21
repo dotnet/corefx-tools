@@ -48,6 +48,11 @@ namespace stress.codegen
         [Required]
         public string ConfigPath { get; set; }
 
+        /// <summary>
+        /// Path to the cache of previously discovered tests
+        /// </summary>
+        public string DiscoveryCachePath { get; set; }
+
         public override bool Execute()
         {
             if (DebugWaitForInput)

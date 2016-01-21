@@ -117,6 +117,8 @@ namespace stress.codegen
 
         public string AssemblyPath { get; set; }
 
+        public DateTime AssemblyLastModified { get; set; }
+
         public string AssemblyName { get { return Path.GetFileName(this.AssemblyPath); } }
 
         public string AssemblyAlias

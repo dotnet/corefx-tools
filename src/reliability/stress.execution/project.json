@@ -7,6 +7,7 @@
     "Microsoft.NETCore": "5.0.0",
     "Microsoft.NETCore.Portable.Compatibility": "1.0.0",
     "System.Diagnostics.Process": "4.1.0-beta-23409",
+    "System.Console": "4.0.0-beta-23409",
     "xunit.core":  "2.1.0"
 
   },
