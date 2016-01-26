@@ -31,6 +31,13 @@ namespace stress.codegen
                 // set the line ending for shell scripts
                 stressScript.NewLine = "\n";
 
+                stressScript.WriteLine("!# /bin/sh");
+                stressScript.WriteLine();
+                stressScript.WriteLine();
+                stressScript.WriteLine("echo 1 > scriptstarted.txt");
+                stressScript.WriteLine();
+                stressScript.WriteLine();
+
                 stressScript.WriteLine("# stress script for {0}", loadTestInfo.TestName);
                 stressScript.WriteLine();
                 stressScript.WriteLine();
@@ -68,12 +75,15 @@ namespace stress.codegen
                     }
                 }
                 stressScript.WriteLine("# test execution");
+                stressScript.WriteLine("echo 1 > beforeexec.txt");
                 stressScript.WriteLine("echo calling [{0}]", testCommandLine);
                 stressScript.WriteLine(testCommandLine);
                 // Save off the exit code
                 stressScript.WriteLine("export _EXITCODE=$?");
+
                 stressScript.WriteLine("echo test exited with ExitCode: $_EXITCODE");
 
+                stressScript.WriteLine("echo 1 > afterexec.txt");
                 //// Check the return code
                 //stressScript.WriteLine("if [ $_EXITCODE != 0 ]");
                 //stressScript.WriteLine("then");

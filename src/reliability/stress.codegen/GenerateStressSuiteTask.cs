@@ -68,7 +68,7 @@ namespace stress.codegen
 
                 LoadSuiteGenerator suiteGen = new LoadSuiteGenerator();
 
-                suiteGen.GenerateSuite(this.ParseSeed(), this.SuiteName, this.SuitePath, this.ParseTestPaths(), this.ParseSearchStrings(), this.ParseFrameworkPaths(), this.GetSuiteConfig());
+                suiteGen.GenerateSuite(this.ParseSeed(), this.SuiteName, this.SuitePath, this.ParseTestPaths(), this.ParseSearchStrings(), this.ParseFrameworkPaths(), this.GetSuiteConfig(), this.DiscoveryCachePath);
 
                 return true;
                 //return this.Log.HasLoggedErrors;

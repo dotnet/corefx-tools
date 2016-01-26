@@ -10,37 +10,75 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace stress.execution
 {
     public class StressTestShim
     {
+        ITestOutputHelper _output;
+
+        public StressTestShim(ITestOutputHelper output)
+        {
+            _output = output;
+
+            _outbuff = new OutputBuffer(2000, output);
+        }
+
         [Fact]
         public void ShellExecuteStressTest()
         {
             //determin if we are on a unix/linux system
             string file = Path.Combine(Directory.GetCurrentDirectory(), File.Exists("/etc/issue") ? "stress.sh" : "stress.bat");
-            
-            ProcessStartInfo startInfo = new ProcessStartInfo() { FileName = file, UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
 
-            Console.WriteLine($"EXEC {file}");
+            ProcessStartInfo testProc;
+
+            if (File.Exists("/etc/issue"))
+            {
+                _output.WriteLine("Setting script file permissions");
+
+                _output.WriteLine($"EXEC: chmod 777 {file}");
+
+                ProcessStartInfo startInfo = new ProcessStartInfo() { FileName = "chmod", Arguments = $"777 {file}", UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+                
+                Process p = Process.Start(startInfo);
+
+                p.WaitForExit();
+
+                _output.WriteLine($"Setting permissions returned: {p.ExitCode}");
+
+                if (p.ExitCode != 0)
+                {
+                    throw new Exception($"Setting shell script permissions failed with non-zero exit code {p.ExitCode}"); // Assert.True(false, string.Format("Stress tests returned error code of {0}.", p.ExitCode));
+                }
+
+                testProc = new ProcessStartInfo() { FileName ="bash", Arguments = file, UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+            }
+            else
+            {
+                testProc = new ProcessStartInfo() { FileName = file, UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+            }
+
+            ProcessStartInfo startInfo2 = new ProcessStartInfo() { FileName = file, UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+
+            _output.WriteLine($"EXEC: {file}");
 
             //Process 
-            Process p = Process.Start(startInfo);
+            Process p2 = Process.Start(testProc);
 
-            Task logout = LogProcessOutputAsync(p.StandardOutput);
+            Task logout = LogProcessOutputAsync(p2.StandardOutput);
 
-            Task logerr = LogProcessOutputAsync(p.StandardError);
+            Task logerr = LogProcessOutputAsync(p2.StandardError);
 
-            p.WaitForExit();
+            p2.WaitForExit();
 
-            if (p.ExitCode != 0)
+            if (p2.ExitCode != 0)
             {
                 Task.WhenAll(logout, logerr).GetAwaiter().GetResult();
 
-                s_outbuff.FlushToConsole();
+                _outbuff.FlushToConsole();
 
-                throw new Exception($"Stress test process exited with non-zero exit code {p.ExitCode}"); // Assert.True(false, string.Format("Stress tests returned error code of {0}.", p.ExitCode));
+                throw new Exception($"Stress test process exited with non-zero exit code {p2.ExitCode}"); // Assert.True(false, string.Format("Stress tests returned error code of {0}.", p.ExitCode));
             }
         }
 
@@ -50,11 +88,11 @@ namespace stress.execution
 
             while ((s = await stream.ReadLineAsync()) != null)
             {
-                s_outbuff.Write(s);
+                _outbuff.Write(s);
             }
         }
 
-        private static OutputBuffer s_outbuff = new OutputBuffer(2000);
+        private OutputBuffer _outbuff;
 
         private class OutputBuffer
         {
@@ -62,13 +100,14 @@ namespace stress.execution
 
             private int _curIx = -1;
             private int _size;
-            
+            private ITestOutputHelper _output;
             private char[] _buff;
 
-            public OutputBuffer(int size)
+            public OutputBuffer(int size, ITestOutputHelper output)
             {
                 _buff = new char[size];
                 _size = size;
+                _output = output;
             }
 
             public void Write(string str)
@@ -79,6 +118,8 @@ namespace stress.execution
                     {
                         Write(str[i]);
                     }
+
+                    Write('\n');
                 }
             }
 
@@ -97,16 +138,20 @@ namespace stress.execution
                 {
                     if (_curIx >= _size)
                     {
-                        Console.WriteLine("--- OUTPUT TRUNCATED ---");
+                        _output.WriteLine("--- OUTPUT TRUNCATED ---");
                     }
+
+                    StringBuilder builder = new StringBuilder();
 
                     int endIx = (_curIx < _size) ? _curIx : _curIx + _size;
 
                     for (int ix = (_curIx < _size) ? 0 : _curIx; ix < endIx; ix++)
                     {
-                        Console.Write(_buff[ix % _size]);
+                        builder.Append(_buff[ix % _size]);
                     }
 
+                    _output.WriteLine(builder.ToString());
+                    
                     //reset the buffer
                     _curIx = -1;
                 }

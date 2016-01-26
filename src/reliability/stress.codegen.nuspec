@@ -34,8 +34,9 @@
         <dependency id="System.Text.Encoding" version="4.0.10" />
         <dependency id="System.Threading" version="4.0.10" />
         <dependency id="System.Threading.Tasks" version="4.0.10" />
+        <dependency id="System.Diagnostics.Process" version="4.1.0-rc3-23721" />
         <dependency id="xunit.core" version="2.1.0" />
-        <dependency id="Newtonsoft.Json" version="7.0.1" />
+        <dependency id="Newtonsoft.Json" version="6.0.5" />
       </group>
     </dependencies>
   </metadata>
