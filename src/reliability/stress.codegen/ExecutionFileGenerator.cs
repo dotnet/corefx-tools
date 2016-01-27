@@ -34,10 +34,7 @@ namespace stress.codegen
                 stressScript.WriteLine("!# /bin/sh");
                 stressScript.WriteLine();
                 stressScript.WriteLine();
-                stressScript.WriteLine("echo 1 > scriptstarted.txt");
-                stressScript.WriteLine();
-                stressScript.WriteLine();
-
+                
                 stressScript.WriteLine("# stress script for {0}", loadTestInfo.TestName);
                 stressScript.WriteLine();
                 stressScript.WriteLine();
@@ -75,23 +72,30 @@ namespace stress.codegen
                     }
                 }
                 stressScript.WriteLine("# test execution");
-                stressScript.WriteLine("echo 1 > beforeexec.txt");
+
                 stressScript.WriteLine("echo calling [{0}]", testCommandLine);
                 stressScript.WriteLine(testCommandLine);
                 // Save off the exit code
                 stressScript.WriteLine("export _EXITCODE=$?");
 
                 stressScript.WriteLine("echo test exited with ExitCode: $_EXITCODE");
+                
+                // Check the return code
+                stressScript.WriteLine("if [ $_EXITCODE != 0 ]");
 
-                stressScript.WriteLine("echo 1 > afterexec.txt");
-                //// Check the return code
-                //stressScript.WriteLine("if [ $_EXITCODE != 0 ]");
-                //stressScript.WriteLine("then");
-                ////            stressScript.WriteLine("  echo JRS - Test Failed. Report the failure, call to do the initial dump analysis, zip up the directory and return that along with an event");
-                //stressScript.WriteLine("  if [-f core]");
-                //stressScript.WriteLine("  then");
-                //stressScript.WriteLine("  python {0}", lldbInspectionFileName);
-                //stressScript.WriteLine("  fi");
+                stressScript.WriteLine("then");
+
+                stressScript.WriteLine("  echo Work item failed zipping work item data for coredump analysis");
+
+                stressScript.WriteLine($"  $HELIX_PYTHONPATH $HELIX_SCRIPT_ROOT/zip_script HELIX_WORKITEM_ROOT/{loadTestInfo.TestName}.zip HELIX_WORKITEM_ROOT/Exec");
+
+                stressScript.WriteLine($"  echo uploading coredump zip to $HELIX_RESULTS_CONTAINER_URI{loadTestInfo.TestName}.zip analysis");
+
+                stressScript.WriteLine($"  echo EXEC: $HELIX_PYTHONPATH $HELIX_SCRIPT_ROOT/upload_result.py -result HELIX_WORKITEM_ROOT/{loadTestInfo.TestName}.zip -result_name {loadTestInfo.TestName}.zip -upload_client_type Blob");
+
+                stressScript.WriteLine($"  $HELIX_PYTHONPATH $HELIX_SCRIPT_ROOT/upload_result.py -result HELIX_WORKITEM_ROOT/{loadTestInfo.TestName}.zip -result_name {loadTestInfo.TestName}.zip -upload_client_type Blob");
+
+                stressScript.WriteLine("fi");
                 ////            stressScript.WriteLine("zip -r {0}.zip .", testName);
                 ////            stressScript.WriteLine("else");
                 ////            stressScript.WriteLine("  echo JRS - Test Passed. Report the pass.");

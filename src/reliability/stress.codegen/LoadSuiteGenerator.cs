@@ -25,8 +25,10 @@ namespace stress.codegen
 
             _unitTestSelector.Initialize(seed, testPaths, searchPatterns, hintPaths, cachePath);
 
-            foreach (var loadTestConfig in config.LoadTestConfigs)
+            for (int iConfig = 0; iConfig < config.LoadTestConfigs.Count; iConfig++)
             {
+                var loadTestConfig = config.LoadTestConfigs[iConfig];
+
                 for (int i = 0; i < loadTestConfig.TestCount; i++)
                 {
                     var loadTestInfo = new LoadTestInfo()
@@ -41,13 +43,14 @@ namespace stress.codegen
                         SuiteConfig = config,
                     };
 
-                    loadTestInfo.SourceDirectory = Path.Combine(outputPath, loadTestInfo.Duration.TotalHours.ToString() + "hr", loadTestInfo.TestName);
+                    loadTestInfo.SourceDirectory = Path.Combine(outputPath, iConfig.ToString("00") + "_" + loadTestInfo.Duration.TotalHours.ToString("00.##") + "hr", loadTestInfo.TestName);
                     loadTestInfo.UnitTests = _unitTestSelector.NextUnitTests(loadTestConfig.NumTests).ToArray();
 
                     this.GenerateTestSources(loadTestInfo);
                     CodeGenOutput.Info($"Generated Load Test: {loadTestInfo.TestName}");
                     suiteTestCount++;
                 }
+
             }
         }
 
