@@ -59,7 +59,18 @@ namespace stress.execution
                 testProc = new ProcessStartInfo() { FileName = file, UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
             }
 
-            ProcessStartInfo startInfo2 = new ProcessStartInfo() { FileName = file, UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+            var envVars = Environment.GetEnvironmentVariables();
+
+            //pass environment variables onto the child process
+            foreach (string envVarName in envVars.Keys)
+            {
+                if (!testProc.Environment.ContainsKey(envVarName))
+                {
+                    _output.WriteLine($"SETTING VARIABLE: {envVarName}={envVars[envVarName]}");
+
+                    testProc.Environment.Add(envVarName, (string)envVars[envVarName]);
+                }
+            }
 
             _output.WriteLine($"EXEC: {file}");
 
