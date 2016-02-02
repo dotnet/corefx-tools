@@ -2,7 +2,7 @@
 <package>
   <metadata minClientVersion="2.8.5">
     <id>Microsoft.DotNet.stress.execution</id>
-    <version>1.0.0-alpha-00001</version>
+    <version>1.0.0.1</version>
     <title>DotNet Stress Execution</title>
     <authors>sschaab@microsoft.com</authors>
     <owners>Microsoft</owners>
@@ -36,13 +36,14 @@
         <dependency id="System.Text.Encoding" version="4.0.10" />
         <dependency id="System.Threading" version="4.0.10" />
         <dependency id="System.Threading.Tasks" version="4.0.10" />
+        <dependency id="System.Diagnostics.Process" version="4.1.0-beta-23409" />
         <dependency id="xunit.core" version="2.1.0" />
       </group>
     </dependencies>
   </metadata>
   <files>
     <!-- For portable class library or DNX projects -->
-    <file src="stress.execution\bin\$Configuration$\stress.execution.dll" target="lib\dotnet\" />
-    <file src="stress.execution\bin\$Configuration$\stress.execution.pdb" target="lib\dotnet\" />
+    <file src="$BinDir$stress.execution.dll" target="lib\dotnet\" />
+    <file src="$BinDir$stress.execution.pdb" target="lib\dotnet\" />
   </files>
 </package>

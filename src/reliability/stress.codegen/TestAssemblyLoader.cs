@@ -37,6 +37,11 @@ namespace stress.codegen
             try
             {
                 _assembly = new TestAssemblyInfo() { Assembly = Assembly.ReflectionOnlyLoadFrom(this.AssemblyPath), ReferenceInfo = new TestReferenceInfo() };
+
+                foreach(var refName in _assembly.Assembly.GetReferencedAssemblies())
+                {
+                    Assembly.ReflectionOnlyLoad(refName.FullName);
+                }
             }
             catch (Exception e)
             {
@@ -66,7 +71,7 @@ namespace stress.codegen
         private Assembly IsoDomain_ReflectionOnlyAssemblyResolve(object sender, ResolveEventArgs args)
         {
             Assembly assm = null;
-            if (s_loadAttempted.Add(args.Name))
+            if (!s_loaded.TryGetValue(args.Name, out assm))
             {
                 try
                 {
@@ -74,18 +79,23 @@ namespace stress.codegen
 
                     this.AddTestAssemblyReference(assm);
 
+                    s_loaded[args.Name] = assm;
+
                     return assm;
                 }
                 catch
                 {
                     assm = ReflectionOnlyAssemblyResolveFromHintPaths(sender, args);
+                    if (assm != null)
+                    {
+                        this.AddTestAssemblyReference(assm);
 
-                    this.AddTestAssemblyReference(assm);
-
+                        s_loaded[args.Name] = assm;
+                    }
                     return assm;
                 }
             }
-            return null;
+            return assm;
         }
 
         private Assembly ReflectionOnlyAssemblyResolveFromHintPaths(object sender, ResolveEventArgs args)
@@ -100,7 +110,7 @@ namespace stress.codegen
                         string assmExeFile = new AssemblyName(args.Name).Name + ".exe";
                         string hintPath = Directory.EnumerateFiles(this.HintPaths[i], assmDllFile, SearchOption.AllDirectories).FirstOrDefault() ?? Directory.EnumerateFiles(this.HintPaths[i], assmExeFile, SearchOption.AllDirectories).FirstOrDefault();
 
-                        if(hintPath != null)
+                        if (hintPath != null)
                         {
                             return Assembly.ReflectionOnlyLoadFrom(hintPath);
                         }
@@ -120,11 +130,11 @@ namespace stress.codegen
             {
                 if (IsFrameworkAssembly(assembly))
                 {
-                    _assembly.ReferenceInfo.FrameworkReferences.Add(assembly.GetName().Name);
+                    _assembly.ReferenceInfo.FrameworkReferences.Add(new AssemblyReference() { Path = assembly.Location, Version = assembly.GetName().Version.ToString() });
                 }
                 else
                 {
-                    _assembly.ReferenceInfo.ReferencedAssemblies.Add(new AssemblyReference() { Path = assembly.Location });
+                    _assembly.ReferenceInfo.ReferencedAssemblies.Add(new AssemblyReference() { Path = assembly.Location, Version = assembly.GetName().Version.ToString() });
                 }
             }
         }
@@ -135,13 +145,14 @@ namespace stress.codegen
 
             var attrDataList = assembly.GetCustomAttributesData();
 
-            bool isFxAssm = assmName.StartsWith("System.") && assembly.GetName().Version.ToString() != "999.999.999.999";
+            bool isFxAssm = assmName.StartsWith("System.") && assembly.GetName().Version.ToString() != "999.999.999.999" && !s_knownTestRefs.Contains(assmName);
 
             return isFxAssm;
         }
 
 
         internal static Dictionary<string, string> g_ResolvedAssemblies = new Dictionary<string, string>();
-        private static HashSet<string> s_loadAttempted = new HashSet<string>();
+        private static Dictionary<string, Assembly> s_loaded = new Dictionary<string, Assembly>();
+        private static HashSet<string> s_knownTestRefs = new HashSet<string>(new string[] { "System.Xml.RW.XmlReaderLib" });
     }
 }

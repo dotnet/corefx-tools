@@ -6,6 +6,8 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Text;
+using System.Reflection;
+using stress.execution;
 
 namespace stress.codegen
 {
@@ -29,6 +31,10 @@ namespace stress.codegen
                 // set the line ending for shell scripts
                 stressScript.NewLine = "\n";
 
+                stressScript.WriteLine("!# /bin/sh");
+                stressScript.WriteLine();
+                stressScript.WriteLine();
+                
                 stressScript.WriteLine("# stress script for {0}", loadTestInfo.TestName);
                 stressScript.WriteLine();
                 stressScript.WriteLine();
@@ -66,26 +72,38 @@ namespace stress.codegen
                     }
                 }
                 stressScript.WriteLine("# test execution");
+
                 stressScript.WriteLine("echo calling [{0}]", testCommandLine);
                 stressScript.WriteLine(testCommandLine);
                 // Save off the exit code
                 stressScript.WriteLine("export _EXITCODE=$?");
-                stressScript.WriteLine("echo test exited with ExitCode: $_EXITCODE");
 
+                stressScript.WriteLine("echo test exited with ExitCode: $_EXITCODE");
+                
                 // Check the return code
                 stressScript.WriteLine("if [ $_EXITCODE != 0 ]");
+
                 stressScript.WriteLine("then");
-                //            stressScript.WriteLine("  echo JRS - Test Failed. Report the failure, call to do the initial dump analysis, zip up the directory and return that along with an event");
-                stressScript.WriteLine("  if [-f core]");
-                stressScript.WriteLine("  then");
-                stressScript.WriteLine("  python {0}", lldbInspectionFileName);
-                stressScript.WriteLine("  fi");
-                //            stressScript.WriteLine("zip -r {0}.zip .", testName);
-                //            stressScript.WriteLine("else");
-                //            stressScript.WriteLine("  echo JRS - Test Passed. Report the pass.");
+
+                stressScript.WriteLine("  echo Work item failed zipping work item data for coredump analysis");
+
+                stressScript.WriteLine($"  echo EXEC:  $HELIX_PYTHONPATH $HELIX_SCRIPT_ROOT/zip_script.py $HELIX_WORKITEM_ROOT/../{loadTestInfo.TestName}.zip $HELIX_WORKITEM_ROOT $HELIX_WORKITEM_ROOT/execution $HELIX_WORKITEM_ROOT/core_root");
+
+                stressScript.WriteLine($"  $HELIX_PYTHONPATH $HELIX_SCRIPT_ROOT/zip_script.py -zipFile $HELIX_WORKITEM_ROOT/../{loadTestInfo.TestName}.zip $HELIX_WORKITEM_ROOT $HELIX_WORKITEM_ROOT/execution $HELIX_WORKITEM_ROOT/core_root");
+
+                stressScript.WriteLine($"  echo uploading coredump zip to $HELIX_RESULTS_CONTAINER_URI{loadTestInfo.TestName}.zip analysis");
+
+                stressScript.WriteLine($"  echo EXEC: $HELIX_PYTHONPATH $HELIX_SCRIPT_ROOT/upload_result.py -result $HELIX_WORKITEM_ROOT/../{loadTestInfo.TestName}.zip -result_name {loadTestInfo.TestName}.zip -upload_client_type Blob");
+
+                stressScript.WriteLine($"  $HELIX_PYTHONPATH $HELIX_SCRIPT_ROOT/upload_result.py -result $HELIX_WORKITEM_ROOT/../{loadTestInfo.TestName}.zip -result_name {loadTestInfo.TestName}.zip -upload_client_type Blob");
+
                 stressScript.WriteLine("fi");
-                stressScript.WriteLine();
-                stressScript.WriteLine();
+                ////            stressScript.WriteLine("zip -r {0}.zip .", testName);
+                ////            stressScript.WriteLine("else");
+                ////            stressScript.WriteLine("  echo JRS - Test Passed. Report the pass.");
+                //stressScript.WriteLine("fi");
+                //stressScript.WriteLine();
+                //stressScript.WriteLine();
 
                 // exit the script with the return code
                 stressScript.WriteLine("exit $_EXITCODE");
@@ -93,6 +111,16 @@ namespace stress.codegen
 
             // Add the shell script to the source files
             loadTestInfo.SourceFiles.Add(new SourceFileInfo(shellScriptPath, SourceFileAction.Binplace));
+
+
+            var shimAssmPath = Assembly.GetAssembly(typeof(StressTestShim)).Location;
+            var shimAssm = Path.GetFileName(shimAssmPath);
+            string shimRefPath = Path.Combine(loadTestInfo.SourceDirectory, shimAssm);
+
+            File.Copy(shimAssmPath, shimRefPath);
+
+            loadTestInfo.SourceFiles.Add(new SourceFileInfo(shimAssmPath, SourceFileAction.Binplace));
+
 
             // Generate the python script, figure out if the run script is being generated into
             // a specific directory, if so then generate the LLDB python script there as well

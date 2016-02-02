@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.Serialization;
 
 namespace stress.codegen
 {
@@ -21,14 +22,46 @@ namespace stress.codegen
     {
         public TestReferenceInfo()
         {
-            this.FrameworkReferences = new List<string>();
+            this.FrameworkReferences = new AssemblyReferenceSet();
 
-            this.ReferencedAssemblies = new List<AssemblyReference>();
+            this.ReferencedAssemblies = new AssemblyReferenceSet();
         }
 
-        public List<string> FrameworkReferences { get; set; }
+        public AssemblyReferenceSet FrameworkReferences { get; set; }
 
-        public List<AssemblyReference> ReferencedAssemblies { get; set; }
+        public AssemblyReferenceSet ReferencedAssemblies { get; set; }
+
+
+    }
+
+    [Serializable]
+    public class AssemblyReferenceSet : HashSet<AssemblyReference>
+    {
+        public AssemblyReferenceSet() : base(new RefComparer())
+        {
+
+        }
+
+        public AssemblyReferenceSet(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+
+        }
+
+        //private static RefComparer s_Comparer = new RefComparer();
+
+        [Serializable]
+        private class RefComparer : IEqualityComparer<AssemblyReference>
+        {
+            public bool Equals(AssemblyReference x, AssemblyReference y)
+            {
+                return x.Name == y.Name;
+            }
+
+            public int GetHashCode(AssemblyReference obj)
+            {
+                return obj.Name.GetHashCode();
+            }
+        }
     }
 
     [Serializable]
@@ -37,6 +70,8 @@ namespace stress.codegen
         public string Name { get { return System.IO.Path.GetFileName(this.Path); } }
 
         public string Path { get; set; }
+
+        public string Version { get; set; }
     }
 
     [Serializable]
@@ -81,6 +116,8 @@ namespace stress.codegen
         public TestReferenceInfo ReferenceInfo { get; set; }
 
         public string AssemblyPath { get; set; }
+
+        public DateTime AssemblyLastModified { get; set; }
 
         public string AssemblyName { get { return Path.GetFileName(this.AssemblyPath); } }
 

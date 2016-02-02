@@ -48,6 +48,11 @@ namespace stress.codegen
         [Required]
         public string ConfigPath { get; set; }
 
+        /// <summary>
+        /// Path to the cache of previously discovered tests
+        /// </summary>
+        public string DiscoveryCachePath { get; set; }
+
         public override bool Execute()
         {
             if (DebugWaitForInput)
@@ -63,7 +68,7 @@ namespace stress.codegen
 
                 LoadSuiteGenerator suiteGen = new LoadSuiteGenerator();
 
-                suiteGen.GenerateSuite(this.ParseSeed(), this.SuiteName, this.SuitePath, this.ParseTestPaths(), this.ParseSearchStrings(), this.ParseFrameworkPaths(), this.GetSuiteConfig());
+                suiteGen.GenerateSuite(this.ParseSeed(), this.SuiteName, this.SuitePath, this.ParseTestPaths(), this.ParseSearchStrings(), this.ParseFrameworkPaths(), this.GetSuiteConfig(), this.DiscoveryCachePath);
 
                 return true;
                 //return this.Log.HasLoggedErrors;

@@ -2,10 +2,12 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 // 
 
+using stress.execution;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,10 +23,24 @@ namespace stress.codegen
 
             string itemSnippet = GenerateSourceFileItemsSnippet(loadTest);
 
-            //format the project template {0} source files, {1} framework references, {2} test references
-            string projFileContent = string.Format(PROJECT_TEMPLATE, itemSnippet, fxSnippet, refSnippet);
+            string propertySnippet = GenerateTestPropertiesSnippet(loadTest);
+
+            //format the project template {0} source files, {1} framework references, {2} test references, {3} test properties
+            string projFileContent = string.Format(PROJECT_TEMPLATE, itemSnippet, fxSnippet, refSnippet, propertySnippet);
 
             File.WriteAllText(Path.Combine(loadTest.SourceDirectory, loadTest.TestName + ".csproj"), projFileContent);
+        }
+
+        private static string GenerateTestPropertiesSnippet(LoadTestInfo loadTest)
+        {
+            //timeout = test duration + 5 minutes for dump processing ect.
+            string timeoutInSeconds = Convert.ToInt32((loadTest.Duration + TimeSpan.FromMinutes(5)).TotalSeconds).ToString();
+
+            string propertyString = $@"
+    <TestAssembly>stress.execution</TestAssembly>
+    <TimeoutInSeconds>{timeoutInSeconds}</TimeoutInSeconds>";
+
+            return propertyString;
         }
 
         private static string GenerateSourceFileItemsSnippet(LoadTestInfo loadTest)
@@ -96,17 +112,39 @@ namespace stress.codegen
             HashSet<string> uniqueAssemblies = new HashSet<string>();
 
             StringBuilder snippet = new StringBuilder();
-            foreach (var fxref in loadTest.UnitTests.SelectMany(t => t.ReferenceInfo.FrameworkReferences).Union(s_systemRefs).Distinct())
+
+            AssemblyReferenceSet fxRefSet = new AssemblyReferenceSet();
+
+            fxRefSet.UnionWith(s_infraFxRefs);
+
+            foreach(var testfxRefs in loadTest.UnitTests.Select(t => t.ReferenceInfo.FrameworkReferences))
             {
-                string refSnippet = $@"
-    <CLRTestContractReference Include='{fxref}' />";
-                snippet.Append(refSnippet);
+                fxRefSet.UnionWith(testfxRefs);
             }
 
+            foreach (var fxref in fxRefSet)
+            {
+                string refSnippet;
+
+                if (fxref.Version.StartsWith("4.0"))
+                {
+                    refSnippet = $@"
+    <CLRTestContractReference Include='{Path.GetFileNameWithoutExtension(fxref.Name)}'/>";
+                }
+                else
+                {
+                    refSnippet = $@"
+    <CLRTestContractReference Include='{Path.GetFileNameWithoutExtension(fxref.Name)}'>
+      <Version>{fxref.Version}</Version>
+    </CLRTestContractReference>";
+                }
+
+                snippet.Append(refSnippet);
+            }
             snippet.Append(@"
     <CLRTestContractReference Include='Microsoft.DotNet.stress.execution'>
       <SkipSupportVerification>true</SkipSupportVerification>
-      <Version>1.0.0-alpha-00003</Version>
+      <Version>1.0.0-alpha-00022</Version>
     </CLRTestContractReference>");
 
             return snippet.ToString();
@@ -121,6 +159,9 @@ namespace stress.codegen
     <CLRTestOwner>sschaab</CLRTestOwner>
     <CLRTestKind>BuildAndRun</CLRTestKind>
     <CLRTestSuite>Weekly</CLRTestSuite>
+  </PropertyGroup>  
+  <!-- Test Properties -->
+  <PropertyGroup>{3}
   </PropertyGroup>
   <!-- Source Code Files -->
   <ItemGroup>{0}
@@ -133,6 +174,17 @@ namespace stress.codegen
   </ItemGroup>
   <Import Project='$(CLRTestRoot)\CLRTest.targets' />
 </Project>";
+
+        private static readonly AssemblyReference[] s_infraFxRefs = new AssemblyReference[]
+        {
+            new AssemblyReference () { Path = "System.Runtime.dll", Version = "4.0.0.0" },
+            new AssemblyReference () { Path = "System.Runtime.Extensions.dll", Version = "4.0.0.0" },
+            new AssemblyReference () { Path = "System.Linq.dll", Version = "4.0.0.0" },
+            new AssemblyReference () { Path = "System.Threading.dll", Version = "4.0.0.0" },
+            new AssemblyReference () { Path = "System.Threading.Tasks.dll", Version = "4.0.0.0" },
+            new AssemblyReference () { Path = "System.Collections.dll", Version = "4.0.0.0" },
+            new AssemblyReference () { Path = "System.Reflection.dll", Version = "4.0.0.0" },
+        };
 
         private static readonly string[] s_systemRefs = new string[] { "System.Runtime", "System.Runtime.Extensions", "System.Linq", "System.Threading", "System.Threading.Tasks", "System.Collections" };
     }
