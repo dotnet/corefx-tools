@@ -22,7 +22,7 @@ namespace stress.execution
         {
             _output = output;
 
-            _outbuff = new OutputBuffer(2000, output);
+            _outbuff = new OutputBuffer(1024 * 1024 * 10, output);
         }
 
         [Fact]
@@ -149,7 +149,11 @@ namespace stress.execution
                 {
                     if (_curIx >= _size)
                     {
+                        _output.WriteLine("");
+
                         _output.WriteLine("--- OUTPUT TRUNCATED ---");
+
+                        _output.WriteLine("");
                     }
 
                     StringBuilder builder = new StringBuilder();
