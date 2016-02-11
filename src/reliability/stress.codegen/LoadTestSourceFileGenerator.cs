@@ -90,22 +90,16 @@ namespace stress.generated
         private string BuildUnitTestInitSnippet()
         {
             StringBuilder arrayContentSnippet = new StringBuilder();
-
-            StringBuilder instanceCreationSnippet = new StringBuilder();
-
-            int instIdx = 0;
-
+            
             foreach (var uTest in this.LoadTest.UnitTests)
             {
                 _includedAliases.Add(uTest.AssemblyAlias);
 
                 if (!uTest.Method.IsStatic)
                 {
-                    instanceCreationSnippet.Append($@"static {uTest.QualifiedTypeStr} inst{instIdx.ToString("X4")} = new {uTest.QualifiedTypeStr}();
-        ");
                     //here we wrap all method calls in an anonymous method to handle cases where the method is not void returning
                     //it is possible that this could be smarter to only do this for non-void returning methods
-                    arrayContentSnippet.Append($@"new UnitTest(() => {{ inst{instIdx++.ToString("X4")}.{uTest.QualifiedMethodStr}(); }}),
+                    arrayContentSnippet.Append($@"new UnitTest(() => {{  new {uTest.QualifiedTypeStr}().{uTest.QualifiedMethodStr}(); }}),
                                 ");
                 }
                 else
@@ -117,7 +111,7 @@ namespace stress.generated
                 }
             }
 
-            return $@"{instanceCreationSnippet}
+            return $@"
         static UnitTest[] g_unitTests = new UnitTest[] 
                         {{
                             {arrayContentSnippet}
