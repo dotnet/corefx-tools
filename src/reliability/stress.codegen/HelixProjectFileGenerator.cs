@@ -144,7 +144,7 @@ namespace stress.codegen
             snippet.Append(@"
     <CLRTestContractReference Include='Microsoft.DotNet.stress.execution'>
       <SkipSupportVerification>true</SkipSupportVerification>
-      <Version>1.0.0-alpha-00027</Version>
+      <Version>1.0.0-alpha-00029</Version>
     </CLRTestContractReference>");
 
             return snippet.ToString();

@@ -22,7 +22,7 @@ namespace stress.execution
         {
             _output = output;
 
-            _outbuff = new OutputBuffer(1024 * 1024 * 10, output);
+            _outbuff = new OutputBuffer(1024 * 200, output);
         }
 
         [Fact]
