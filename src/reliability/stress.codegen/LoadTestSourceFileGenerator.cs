@@ -23,13 +23,13 @@ namespace stress.codegen
         {
             this.LoadTest = testInfo;
 
+            string unitTestsClassContentSnippet = this.BuildUnitTestsClassContentSnippet();
+
             string unitTestInitSnippet = this.BuildUnitTestInitSnippet();
 
             string externAliasSnippet = this.BuildExternAliasSnippet();
 
             string testSnippet = this.BuildTestSnippet();
-
-            string unitTestsClassContentSnippet = this.BuildUnitTestsClassContentSnippet();
 
             string source = $@"
 {externAliasSnippet}

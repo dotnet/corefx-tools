@@ -45,7 +45,7 @@ namespace stress.codegen
             // Deserialize the RunConfiguration
             JsonSerializer serializer = JsonSerializer.CreateDefault();
 
-            using (FileStream fs = new FileStream(path, FileMode.Open))
+            using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read))
             {
                 using (StreamReader reader = new StreamReader(fs))
                 {
