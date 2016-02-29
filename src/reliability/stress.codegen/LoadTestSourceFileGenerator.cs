@@ -15,11 +15,15 @@ namespace stress.codegen
     {
         private HashSet<string> _includedAliases = new HashSet<string>();
 
+        private List<string> _testNames = new List<string>();
+
         public LoadTestInfo LoadTest { get; set; }
 
         public void GenerateSourceFile(LoadTestInfo testInfo)
         {
             this.LoadTest = testInfo;
+
+            string unitTestsClassContentSnippet = this.BuildUnitTestsClassContentSnippet();
 
             string unitTestInitSnippet = this.BuildUnitTestInitSnippet();
 
@@ -33,9 +37,15 @@ namespace stress.codegen
 using System;
 using System.Threading;
 using stress.execution;
+using Xunit;
 
 namespace stress.generated
 {{
+    public static class UnitTests
+    {{
+        {unitTestsClassContentSnippet}
+    }}             
+
     public static class LoadTestClass
     {{
         {unitTestInitSnippet}
@@ -86,42 +96,58 @@ namespace stress.generated
             return testSnippet;
         }
 
+        private string BuildUnitTestsClassContentSnippet()
+        {
+            StringBuilder classContentSnippet = new StringBuilder();
+
+            int i = 0;
+
+            foreach (var uTest in this.LoadTest.UnitTests)
+            {
+                string testName = $"UT{i++.ToString("X")}";
+
+                _testNames.Add(testName);
+
+                _includedAliases.Add(uTest.AssemblyAlias);
+
+
+                string testWrapper = $@" 
+        [Fact]
+        public static void {testName}()
+        {{
+            {BuildUnitTestMethodContentSnippet(uTest)}
+        }}
+";
+                classContentSnippet.Append(testWrapper);
+            }
+
+            return classContentSnippet.ToString();
+        }
+
+        private string BuildUnitTestMethodContentSnippet(UnitTestInfo uTest)
+        {
+            string contentSnippet = uTest.Method.IsStatic ? $"{uTest.QualifiedMethodStr}();" : $"new { uTest.QualifiedTypeStr }().{ uTest.QualifiedMethodStr}();";
+
+            return contentSnippet;
+
+        }
 
         private string BuildUnitTestInitSnippet()
         {
             StringBuilder arrayContentSnippet = new StringBuilder();
-
-            StringBuilder instanceCreationSnippet = new StringBuilder();
-
-            int instIdx = 0;
-
-            foreach (var uTest in this.LoadTest.UnitTests)
+            
+            foreach (var testName in _testNames)
             {
-                _includedAliases.Add(uTest.AssemblyAlias);
+                    arrayContentSnippet.Append($@"new UnitTest(UnitTests.{testName}),
+            ");
 
-                if (!uTest.Method.IsStatic)
-                {
-                    instanceCreationSnippet.Append($@"static {uTest.QualifiedTypeStr} inst{instIdx.ToString("X4")} = new {uTest.QualifiedTypeStr}();
-        ");
-                    //here we wrap all method calls in an anonymous method to handle cases where the method is not void returning
-                    //it is possible that this could be smarter to only do this for non-void returning methods
-                    arrayContentSnippet.Append($@"new UnitTest(() => {{ inst{instIdx++.ToString("X4")}.{uTest.QualifiedMethodStr}(); }}),
-                                ");
-                }
-                else
-                {
-                    //here we wrap all method calls in an anonymous method to handle cases where the method is not void returning
-                    //it is possible that this could be smarter to only do this for non-void returning methods
-                    arrayContentSnippet.Append($@"new UnitTest(() => {{ {uTest.QualifiedMethodStr}(); }}),
-                                ");
-                }
             }
 
-            return $@"{instanceCreationSnippet}
+            return $@"
         static UnitTest[] g_unitTests = new UnitTest[] 
-                        {{
-                            {arrayContentSnippet}
-                        }};";
+        {{
+            {arrayContentSnippet}
+        }};";
         }
     }
 }
