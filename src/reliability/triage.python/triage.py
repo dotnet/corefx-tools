@@ -12,6 +12,11 @@ class DbgEngine(threading.local):
         return [DbgFrame(f) for f in thread.frames]
     
 g_dbg = DbgEngine()
+g_bPrintDebug = False
+
+def _dbg_write(str):
+    if g_bPrintDebug:
+        print str
 
 def __lldb_init_module(debugger, internal_dict):    
     debugger.HandleCommand('command script add -f triage.analyze analyze')
@@ -21,7 +26,6 @@ def init_debugger(debugger):
     g_dbg.debugger = debugger
     g_dbg.interpreter = debugger.GetCommandInterpreter()
     g_dbg.target = debugger.GetSelectedTarget()
-
 
 def analyze(debugger, command, result, internal_dict):
     argList = shlex.split(command)
@@ -43,12 +47,27 @@ def analyze(debugger, command, result, internal_dict):
     eng = AnalysisEngine(dictArgs)
     
     eng.add_analyzer(StackTriageAnalyzer())
+    eng.add_analyzer(StopReasonAnalyzer())
+    eng.add_analyzer(LastExceptionAnalyzer())
+    eng.add_analyzer(HeapCorruptionAnalyzer())
     
     dictProps = { }
 
     eng.analyze(dictProps);
         
-    
+    if 'STOP_REASON' in dictProps:
+        dictProps['FAILURE_HASH'] = dictProps['STOP_REASON']
+
+    if 'FOLLOW_UP' in dictProps and dictProps['FOLLOW_UP'] == 'heap_corruption':
+        dictProps['FAILURE_HASH'] = dictProps['FAILURE_HASH'] + '_HEAPCORRUPT'
+        
+
+    if 'CORRUPT_ROOT_FRAME' in dictProps:
+        dictProps['FAILURE_HASH'] = dictProps['FAILURE_HASH'] + '_' + dictProps['CORRUPT_ROOT_FRAME']
+    elif 'FAULT_SYMBOL' in dictProps:
+        dictProps['FAILURE_HASH'] = dictProps['FAILURE_HASH'] + '_' + dictProps['FAULT_SYMBOL']
+
+
     if '-o' in dictArgs:
         with open(dictArgs['-o'], 'w') as f:
             for key in dictProps.keys():
@@ -100,7 +119,6 @@ class AnalysisEngine(object):
 
 class SosInterpreter(object):
     def ip2md(self, strIp):
-        ip2mdReturn = lldb.SBCommandReturnObject()
         strOut = self.run_command("ip2md " + strIp)
         return strOut
     
@@ -108,14 +126,40 @@ class SosInterpreter(object):
         strOut = self.run_command("sos DumpClass " + strClassPtr)
         return strOut
 
+    def pe(self, bNested = False):
+        cmd = 'pe'
+
+        if bNested:
+            cmd = cmd + ' -nested'
+
+        strOut = self.run_command(cmd)
+        return strOut
+
+    def get_symbol(self, strIp):
+        strRoutine='UNKNOWN'
+        strModule='UNKNOWN'
+        ip2mdOut = self.ip2md(strIp)
+        ip2mdProps = _str_to_dict(ip2mdOut)
+        if 'Method Name' in ip2mdProps: 
+            strRoutine = ip2mdProps['Method Name'].split('(')[0]
+            if 'Class' in ip2mdProps:
+                classPtr = ip2mdProps['Class']
+                if classPtr is not None and classPtr <> '':
+                    classOut = self.dumpclass(classPtr)
+                    classProps = _str_to_dict(classOut)
+                    if 'File' in  classProps:
+                        strFile = classProps['File']
+                        strModule = string.rsplit(string.rsplit(strFile, '.', 1)[0], '/', 1)[1] 
+        return strModule + '!' + strRoutine
+
     def run_command(self, strCmd):
         strOut = ""
         result = lldb.SBCommandReturnObject()
         g_dbg.interpreter.HandleCommand(strCmd, result)
         if result.Succeeded() and result.HasResult():
-            #print "INFO: Command SUCCEEDED: '" + strCmd + "'"
+            _dbg_write("INFO: Command SUCCEEDED: '" + strCmd + "'")
             strOut = result.GetOutput()
-            #print strOut
+            _dbg_write(result.GetOutput())
         else:
             print "ERROR: Command FAILED: '" + strCmd + "'"
             print result.GetError()
@@ -125,7 +169,7 @@ class DbgFrame(object):
 
     def __init__(self, sbFrame):
         self.sbFrame = sbFrame
-        self.strIp = self.sbFrame.addr.GetLoadAddress(g_dbg.target)
+        self.strIp = string.rstrip(hex(self.sbFrame.addr.GetLoadAddress(g_dbg.target)), 'L')
         self.strModule = sbFrame.module.file.basename
         self.strRoutine = sbFrame.symbol.name
         
@@ -147,8 +191,9 @@ class DbgFrame(object):
 
     def tryget_managed_frame_info(self):
         sos = SosInterpreter()
-        ip2mdOut = sos.ip2md(hex(self.strIp))
+        ip2mdOut = sos.ip2md(self.strIp)
         ip2mdProps = _str_to_dict(ip2mdOut)
+        _dbg_write(str(ip2mdProps))
         if 'Method Name' in ip2mdProps: 
             self.strRoutine = ip2mdProps['Method Name']
             if 'Class' in ip2mdProps:
@@ -156,6 +201,7 @@ class DbgFrame(object):
                 if classPtr is not None and classPtr <> '':
                     classOut = sos.dumpclass(classPtr)
                     classProps = _str_to_dict(classOut)
+                    _dbg_write(str(classProps))
                     if 'File' in  classProps:
                         strFile = classProps['File']
                         self.strModule = string.rsplit(string.rsplit(strFile, '.', 1)[0], '/', 1)[1] 
@@ -178,7 +224,7 @@ class StackTriageRule(object):
     def load_from_triage_string(self, strTriage):
         splitOnEq = string.split(strTriage, "=")
         self.strFrame = splitOnEq[0]
-        self.strFollowup = splitOnEq[1]
+        self.strFollowup = string.strip(splitOnEq[1])
         splitOnBang = string.split(splitOnEq[0], "!")
         self.strModule = "*"
         self.strRoutine = "*"
@@ -369,3 +415,52 @@ class StackTriageAnalyzer(AnalysisEngine):
         #create rule for each rule line
         lstRules.extend([StackTriageRule(line) for line in ruleLines])
         
+class StopReasonAnalyzer(AnalysisEngine):
+    def __init__(self):
+        self.initVoid = None
+
+    def analyze(self, dictProps, dictArgs):
+        thread = g_dbg.target.GetProcess().GetSelectedThread()
+        dictProps['STOP_REASON'] = string.replace(thread.GetStopDescription(200), 'signal ', '')
+
+
+class LastExceptionAnalyzer(AnalysisEngine):
+    def __init__(self):
+        self.initVoid = None
+
+    def analyze(self, dictProps, dictArgs):
+        thread = g_dbg.target.GetProcess().GetSelectedThread()
+        sos = SosInterpreter()
+        peOut = sos.pe()
+        dictProps['LAST_EXCEPTION'] = peOut
+        peProps = _str_to_dict(peOut)
+        if 'Exception type' in peProps and peProps['Exception type'] is not None:
+            dictProps['LAST_EXCEPTION_TYPE'] = peProps['Exception type']
+            
+
+
+
+class HeapCorruptionAnalyzer(AnalysisEngine):
+    def __init__(self):
+        self.initVoid = None
+
+    def analyze(self, dictProps, dictArgs):
+        _dbg_write('RUNNING HEAP CORRUPTION ANALYZE')
+        if 'FOLLOW_UP' in dictProps and dictProps['FOLLOW_UP'] == 'heap_corruption':
+            #check if there is a stack walker frame on the faulting stack
+            
+            _dbg_write('HEAP CORRUPTION IS PRESENT')
+
+            stackWalkFrames = [f for f in g_dbg.get_current_stack() if 'Thread::StackWalkFramesEx' == f.strRoutine]
+                
+            
+            if len(stackWalkFrames) > 0:
+                stackWalkFrame = stackWalkFrames[0]
+                tid = stackWalkFrame.sbFrame.EvaluateExpression('this->m_OSThreadId')
+                iTID = tid.GetValueAsUnsigned()
+                thread = g_dbg.target.GetProcess().GetThreadByID(iTID)
+                dictProps['CORRUPT_ROOT_THREAD'] = str(thread)
+                pc = stackWalkFrame.sbFrame.EvaluateExpression('pRD->ControlPC')
+                iPC = pc.GetValueAsUnsigned()
+                sos = SosInterpreter()
+                dictProps['CORRUPT_ROOT_FRAME'] = sos.get_symbol(string.rstrip(hex(iPC), 'L'))
