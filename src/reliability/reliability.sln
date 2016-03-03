@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "stress", "stress\stress.csproj", "{C25A3D15-A367-4607-9DF9-7A1D230FF6F0}"
 EndProject
@@ -31,6 +31,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{A8C407B3
 		dir.targets = dir.targets
 		dirs.proj = dirs.proj
 	EndProjectSection
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "triage.python", "triage.python\triage.python.pyproj", "{30235680-E206-4F0A-BBBB-D35B7C0B70E8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -70,6 +72,8 @@ Global
 		{7E1E57D9-8587-4EA1-86F7-02813819B118}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7E1E57D9-8587-4EA1-86F7-02813819B118}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7E1E57D9-8587-4EA1-86F7-02813819B118}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30235680-E206-4F0A-BBBB-D35B7C0B70E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30235680-E206-4F0A-BBBB-D35B7C0B70E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
