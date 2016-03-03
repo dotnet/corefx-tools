@@ -1,6 +1,8 @@
 syntax: glob
 
 ### VisualStudio ###
+#nuget lock files
+project.lock.json
 
 # User-specific files
 *.suo
