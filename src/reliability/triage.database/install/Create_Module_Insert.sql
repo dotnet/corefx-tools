@@ -2,18 +2,21 @@
     @name nvarchar(256)
 AS
 BEGIN
-BEGIN TRANSACTION
     DECLARE @MID as int 
     SELECT @MID = [M].[Id]
     FROM [Modules] AS [M] 
     WHERE [M].[Name] = @name 
 
     IF @MID IS NULL -- if the module doesn't exist create it
-    BEGIN
-        INSERT INTO Modules([Name]) 
+    BEGIN TRY
+        INSERT INTO [Modules] ([Name]) 
         VALUES ( @name )
         SELECT @MID = SCOPE_IDENTITY()
-    END
-COMMIT TRANSACTION
+    END TRY
+	BEGIN CATCH    
+		SELECT @MID = [M].[Id]
+		FROM [Modules] AS [M] 
+		WHERE [M].[Name] = @name 
+	END CATCH
 SELECT @MID, @name
 END
