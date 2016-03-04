@@ -60,7 +60,9 @@ def analyze(debugger, command, result, internal_dict):
 
     if 'FOLLOW_UP' in dictProps and dictProps['FOLLOW_UP'] == 'heap_corruption':
         dictProps['FAILURE_HASH'] = dictProps['FAILURE_HASH'] + '_HEAPCORRUPT'
-        
+    
+    if ('FOLLOW_UP' not in dictProps or dictProps['FOLLOW_UP'] <> 'heap_corruption') and 'LAST_EXCEPTION_TYPE' in dictProps:
+        dictProps['FAILURE_HASH'] = dictProps['FAILURE_HASH'] + '_' + dictProps['LAST_EXCEPTION_TYPE']
 
     if 'CORRUPT_ROOT_FRAME' in dictProps:
         dictProps['FAILURE_HASH'] = dictProps['FAILURE_HASH'] + '_' + dictProps['CORRUPT_ROOT_FRAME']

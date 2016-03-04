@@ -56,6 +56,11 @@
     <Compile Include="BucketData.cs" />
     <Compile Include="Dump.cs" />
     <Compile Include="Frame.cs" />
+    <Compile Include="install\InstallScripts.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>InstallScripts.resx</DependentUpon>
+    </Compile>
     <Compile Include="install\TriageDbInitializer.cs" />
     <Compile Include="Routine.cs" />
     <Compile Include="Module.cs" />
@@ -68,7 +73,12 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="install\InstallScripts.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>InstallScripts.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
   <ItemGroup>
     <Content Include="install\Create_Module_Insert.sql" />
     <Content Include="install\Create_Routine_Insert.sql" />

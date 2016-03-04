@@ -19,12 +19,16 @@ namespace triage.database
             s_connStr = connStr;
         }
 
-        public static async Task AddDumpAsync(Dump dump)
+        public static async Task<int> AddDumpAsync(Dump dump)
         {
             using (var context = new TriageDbContext(s_connStr))
             {
+                context.Dumps.Add(dump);
+
                 await context.SaveChangesAsync();
             }
+
+            return dump.DumpId;
         }
 
         private const string BUCKET_DATA_QUERY = @"

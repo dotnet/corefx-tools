@@ -16,6 +16,8 @@ namespace triage.database.install
         public override void InitializeDatabase(TriageDbContext context)
         {
             //call install scripts
+            context.Database.ExecuteSqlCommand(InstallScripts.Create_Module_Insert);
+            context.Database.ExecuteSqlCommand(InstallScripts.Create_Routine_Insert);
         }
     }
 }
