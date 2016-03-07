@@ -28,6 +28,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="corezip.py" />
+    <Compile Include="downzip.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="triage.py" />
   </ItemGroup>
   <ItemGroup>
