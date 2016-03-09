@@ -7,10 +7,45 @@ import string
 
 class DbgEngine(threading.local):
 
+    # get a list of the frames in the current stack
+    # returns  - a list of DbgFrame objects from the current stack
     def get_current_stack(self):
         thread = self.target.GetProcess().GetSelectedThread()
         return [DbgFrame(f) for f in thread.frames]
+
+    # find the first frame matching the supplied routine name
+    # strRoutine - string name of the routine to find on the selected thread
+    # returns    - a DbgFrame index of the first frame matching the supplied routine name
+    #              if no matching frames are found None is returned
+    def get_first_frame(self, strRoutine):
+        frame = None
+        matching = [f for f in self.get_current_stack() if strRoutine == f.strRoutine]
+            
+        if len(matching) > 0:
+            frame = matching[0]
+        return frame
     
+    # evaluate the given expression for the given frame and return the result as a UINT
+    # dbgFrame   - DbgFrame to evaluate the given expression on
+    # strExpr    - Expression to be evaluated
+    # returns    - The value of the evaluated expression, (zero if the expression is not available)
+    def eval_uint(self, dbgFrame, strExpr):
+        sbVal = dbgFrame.sbFrame.EvaluateExpression(strExpr)
+        uint = sbVal.GetValueAsUnsigned()
+        return uint
+
+    # try to evaluate the given expression on the first frame matching the supplied routine
+    # strRoutine  - The routine to find in the current stack, if the routine appears in the stack multiple times the first occurance will be chosen
+    # strExpr     - The expression to evaluate 
+    # returns     - The value of the evaluated expression.  Zero, if the specified routine is not found in the current stack or the value of the given
+    #               expression is not available. 
+    def tryget_frame_uint(self, strRoutine, strExpr):
+        val = 0
+        frame = self.get_first_frame(strRoutine)
+        if frame is not None:
+            val = self.eval_uint(frame, strExpr)
+        return val
+
 g_dbg = DbgEngine()
 g_bPrintDebug = False
 
@@ -19,8 +54,8 @@ def _dbg_write(str):
         print str
 
 def __lldb_init_module(debugger, internal_dict):    
-    debugger.HandleCommand('command script add -f triage.analyze analyze')
-    debugger.HandleCommand('command script add -f triage.btm btm')
+    debugger.HandleCommand('command script add -f analysis.analyze analyze')
+    debugger.HandleCommand('command script add -f analysis.btm btm')
 
 def init_debugger(debugger):
     g_dbg.debugger = debugger
@@ -450,19 +485,32 @@ class HeapCorruptionAnalyzer(AnalysisEngine):
         _dbg_write('RUNNING HEAP CORRUPTION ANALYZE')
         if 'FOLLOW_UP' in dictProps and dictProps['FOLLOW_UP'] == 'heap_corruption':
             #check if there is a stack walker frame on the faulting stack
-            
             _dbg_write('HEAP CORRUPTION IS PRESENT')
 
-            stackWalkFrames = [f for f in g_dbg.get_current_stack() if 'Thread::StackWalkFramesEx' == f.strRoutine]
+            stackWalkFrame = g_dbg.get_first_frame('Thread::StackWalkFramesEx')
+            if stackWalkFrame is not None:
+                tid = g_dbg.eval_uint(stackWalkFrame,'this->m_OSThreadId')
+    
+                if not tid == 0:
+                    thread = g_dbg.target.GetProcess().GetThreadByID(tid)
+                    dictProps['CORRUPT_ROOT_THREAD'] = str(thread)
                 
-            
-            if len(stackWalkFrames) > 0:
-                stackWalkFrame = stackWalkFrames[0]
-                tid = stackWalkFrame.sbFrame.EvaluateExpression('this->m_OSThreadId')
-                iTID = tid.GetValueAsUnsigned()
-                thread = g_dbg.target.GetProcess().GetThreadByID(iTID)
-                dictProps['CORRUPT_ROOT_THREAD'] = str(thread)
-                pc = stackWalkFrame.sbFrame.EvaluateExpression('pRD->ControlPC')
-                iPC = pc.GetValueAsUnsigned()
+                pc = self._find_walker_pc_as_uint()
                 sos = SosInterpreter()
-                dictProps['CORRUPT_ROOT_FRAME'] = sos.get_symbol(string.rstrip(hex(iPC), 'L'))
+                dictProps['CORRUPT_ROOT_FRAME'] = sos.get_symbol(string.rstrip(hex(pc), 'L'))
+
+                
+    
+    def _find_walker_pc_as_uint(self):
+        #need to search for the current stack walker pc starting with the StackWalkFramesEx and working up the stack
+        #depending on optimizations and the exact location of the current GC values might or might not be available
+        pc = g_dbg.tryget_frame_uint('Thread::StackWalkFramesEx', 'pRD->ControlPC')
+        if pc == 0:
+            pc = g_dbg.tryget_frame_uint('Thread::MakeStackwalkerCallback', 'pCF->pRD->ControlPC')
+        if pc == 0:
+            pc = g_dbg.tryget_frame_uint('GcStackCrawlCallBack', 'pCF->pRD->ControlPC')
+        if pc == 0:
+            pc = g_dbg.tryget_frame_uint('EECodeManager::EnumGcRefs', 'pRD->ControlPC')
+        if pc == 0:
+            pc = g_dbg.tryget_frame_uint('GcInfoDecoder::EnumerateLiveSlots', 'pRD->ControlPC')
+        return pc
