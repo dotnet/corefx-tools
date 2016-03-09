@@ -30,7 +30,7 @@ class DbgEngine(threading.local):
     # strExpr    - Expression to be evaluated
     # returns    - The value of the evaluated expression, (zero if the expression is not available)
     def eval_uint(self, dbgFrame, strExpr):
-        sbVal = stackWalkFrame.sbFrame.EvaluateExpression(strExpr)
+        sbVal = dbgFrame.sbFrame.EvaluateExpression(strExpr)
         uint = sbVal.GetValueAsUnsigned()
         return uint
 
@@ -54,8 +54,8 @@ def _dbg_write(str):
         print str
 
 def __lldb_init_module(debugger, internal_dict):    
-    debugger.HandleCommand('command script add -f triage.analyze analyze')
-    debugger.HandleCommand('command script add -f triage.btm btm')
+    debugger.HandleCommand('command script add -f analysis.analyze analyze')
+    debugger.HandleCommand('command script add -f analysis.btm btm')
 
 def init_debugger(debugger):
     g_dbg.debugger = debugger
@@ -490,14 +490,14 @@ class HeapCorruptionAnalyzer(AnalysisEngine):
             stackWalkFrame = g_dbg.get_first_frame('Thread::StackWalkFramesEx')
             if stackWalkFrame is not None:
                 tid = g_dbg.eval_uint(stackWalkFrame,'this->m_OSThreadId')
-            
-                if tid <> 0:
-                    thread = g_dbg.target.GetProcess().GetThreadByID(iTID)
+    
+                if not tid == 0:
+                    thread = g_dbg.target.GetProcess().GetThreadByID(tid)
                     dictProps['CORRUPT_ROOT_THREAD'] = str(thread)
                 
                 pc = self._find_walker_pc_as_uint()
                 sos = SosInterpreter()
-                dictProps['CORRUPT_ROOT_FRAME'] = sos.get_symbol(string.rstrip(hex(iPC), 'L'))
+                dictProps['CORRUPT_ROOT_FRAME'] = sos.get_symbol(string.rstrip(hex(pc), 'L'))
 
                 
     
