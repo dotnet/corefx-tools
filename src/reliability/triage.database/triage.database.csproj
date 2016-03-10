@@ -62,6 +62,7 @@
       <DependentUpon>InstallScripts.resx</DependentUpon>
     </Compile>
     <Compile Include="install\TriageDbInitializer.cs" />
+    <Compile Include="Property.cs" />
     <Compile Include="Routine.cs" />
     <Compile Include="Module.cs" />
     <Compile Include="Thread.cs" />
