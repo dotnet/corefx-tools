@@ -85,7 +85,12 @@ namespace stress.codegen
 
                 stressScript.WriteLine("then");
 
-                stressScript.WriteLine("  echo Work item failed zipping work item data for coredump analysis");
+                //This is a temporary hack workaround for the fact that the process exits before the coredump file is completely written
+                //We need to replace this with a more hardened way to guaruntee that we don't zip and upload before the coredump is available
+                stressScript.WriteLine("  echo Work item failed waiting for coredump...");
+                stressScript.WriteLine("  sleep 2m");
+
+                stressScript.WriteLine("  echo zipping work item data for coredump analysis");
 
                 stressScript.WriteLine($"  echo EXEC:  $HELIX_PYTHONPATH $HELIX_SCRIPT_ROOT/zip_script.py $HELIX_WORKITEM_ROOT/../{loadTestInfo.TestName}.zip $HELIX_WORKITEM_ROOT $HELIX_WORKITEM_ROOT/execution $HELIX_WORKITEM_ROOT/core_root");
 
