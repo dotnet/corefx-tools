@@ -4,6 +4,7 @@ import argparse
 import os
 import threading
 import string
+import json
 
 class DbgEngine(threading.local):
 
@@ -107,10 +108,7 @@ def analyze(debugger, command, result, internal_dict):
 
     if '-o' in dictArgs:
         with open(dictArgs['-o'], 'w') as f:
-            for key in dictProps.keys():
-                f.write(key + ":\n")
-                f.write(dictProps[key])
-                f.write("\n\n")
+            f.write(json.dumps(dictProps))
 
     for key in dictProps.keys():
         result.AppendMessage(" ")
