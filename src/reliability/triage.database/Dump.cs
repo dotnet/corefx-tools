@@ -33,6 +33,8 @@ namespace triage.database
 
         public virtual ICollection<Thread> Threads { get; set; }
 
+        public virtual ICollection<Property> Properties { get; set; }
+
         [ForeignKey("BucketId")]
         public virtual Bucket Bucket { get; set; }
     }

@@ -23,6 +23,7 @@ namespace triage.database
         public DbSet<Frame> Frames { get; set; }
         public DbSet<Routine> Routines { get; set; }
         public DbSet<Module> Modules { get; set; }
+        public DbSet<Property> Properties { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
