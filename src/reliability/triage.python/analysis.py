@@ -129,8 +129,7 @@ def btm(debugger, command, result, internal_dict):
     lstFrame = g_dbg.get_current_stack()
 
     for i, frame in enumerate(lstFrame):
-        print str(i) + "\t" + frame.strIp + " " + str(frame)
-        result.AppendMessage(str(i) + "\t" + frame.strIp + " " + str(frame))
+        result.AppendMessage(str(i) + "\t" + frame.strIp + " " + frame.strFullFrame)
     
     debugger.SetAsync(bAsync)
 
@@ -219,9 +218,11 @@ class DbgFrame(object):
             
         if self.strRoutine is None or self.strRoutine == '':
             self.strRoutine = 'UNKNOWN'
-
+            
+        self.strFullRoutine = self.strRoutine
         self.strRoutine = string.split(self.strRoutine, '(')[0]
         self.strFrame = self.strModule + '!' + self.strRoutine
+        self.strFullFrame = self.strModule + '!' + self.strFullRoutine
 
     def __str__(self):
         return self.strFrame
@@ -496,8 +497,11 @@ class HeapCorruptionAnalyzer(AnalysisEngine):
                     dictProps['CORRUPT_ROOT_THREAD'] = str(thread)
                 
                 pc = self._find_walker_pc_as_uint()
+                pcHex = string.rstrip(hex(pc), 'L')
+                dictProps['CORRUPT_ROOT_FRAME_PC'] = pcHex
                 sos = SosInterpreter()
-                dictProps['CORRUPT_ROOT_FRAME'] = sos.get_symbol(string.rstrip(hex(pc), 'L'))
+                dictProps['CORRUPT_ROOT_FRAME'] = sos.get_symbol(pcHex)
+
 
                 
     
