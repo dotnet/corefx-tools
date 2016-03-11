@@ -90,7 +90,7 @@ namespace stress.codegen
                 stressScript.WriteLine("  echo Work item failed waiting for coredump...");
                 stressScript.WriteLine("  sleep 2m");
 
-                stressScript.WriteLine("  zipping work item data for coredump analysis");
+                stressScript.WriteLine("  echo zipping work item data for coredump analysis");
 
                 stressScript.WriteLine($"  echo EXEC:  $HELIX_PYTHONPATH $HELIX_SCRIPT_ROOT/zip_script.py $HELIX_WORKITEM_ROOT/../{loadTestInfo.TestName}.zip $HELIX_WORKITEM_ROOT $HELIX_WORKITEM_ROOT/execution $HELIX_WORKITEM_ROOT/core_root");
 
