@@ -5,6 +5,7 @@
   <ItemGroup>
     <Project Include="*\*.csproj" />
     <Project Include="reliability\dirs.proj" />
+	<Project Include="StackParser\StackParser.csproj" />
   </ItemGroup>
 
   <Import Project="..\dir.targets" />
