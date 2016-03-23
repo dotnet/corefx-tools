@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-// 
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Newtonsoft.Json;
 using stress.codegen.utils;
@@ -26,16 +26,16 @@ namespace stress.codegen
         {
             _rand = new Random(seed);
 
-            if(cachePath != null)
+            if (cachePath != null)
             {
                 _candidateCache = LoadCacheFromFile(cachePath);
             }
 
             _candidates = this.FindAllTests(paths, patterns, hintPaths).ToArray();
 
-            if(cachePath != null)
+            if (cachePath != null)
             {
-                WriteCacheToFile(cachePath); 
+                WriteCacheToFile(cachePath);
             }
 
             CodeGenOutput.Info($"Discovered {_candidates.Length} unit tests, across {_candidates.Select(t => t.AssemblyPath).Distinct().Count()} assemblies.");
@@ -94,7 +94,6 @@ namespace stress.codegen
                             }
 
                             assmTests.Add(test);
-
                         }
                     }
                 }
@@ -102,11 +101,9 @@ namespace stress.codegen
                 {
                     CodeGenOutput.Warning($"Unable to read test discovery cache file: {path}.\n{e.ToString()}");
                 }
-
             }
 
             return cache;
-            
         }
 
         public void WriteCacheToFile(string path)
@@ -128,7 +125,6 @@ namespace stress.codegen
             {
                 CodeGenOutput.Warning($"Unable to write test discovery cache file: {path}.\n{e.ToString()}");
             }
-
         }
 
         public static UnitTestInfo[] ReadCacheFromFile(string path)
@@ -175,7 +171,7 @@ namespace stress.codegen
         private UnitTestInfo[] GetTests(string path, string[] hintPaths)
         {
             List<UnitTestInfo> cachedTests;
-            if(_candidateCache != null && _candidateCache.TryGetValue(path, out cachedTests))
+            if (_candidateCache != null && _candidateCache.TryGetValue(path, out cachedTests))
             {
                 CodeGenOutput.Info($"{path}: {cachedTests.Count} tests discovered from cache");
                 return cachedTests.ToArray();
@@ -191,15 +187,15 @@ namespace stress.codegen
             var codeGenDllPath = Assembly.GetExecutingAssembly().Location;
 
             var codegenDir = Path.GetDirectoryName(codeGenDllPath);
-            
+
             AppDomain loaderDomain = AppDomain.CreateDomain(path, AppDomain.CurrentDomain.Evidence, new AppDomainSetup() { ApplicationBase = codegenDir });
-            
+
             var loader = (TestAssemblyLoader)loaderDomain.CreateInstanceFromAndUnwrap(codeGenDllPath, typeof(TestAssemblyLoader).FullName);
 
             loader.InitializeLifetimeService();
 
             HashSet<string> hints = new HashSet<string>(hintPaths) { Path.GetDirectoryName(path) };
-            
+
             loader.Load(path, hints.ToArray());
 
             UnitTestInfo[] tests = loader.GetTests<XUnitTestDiscoverer>();

@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-// 
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -16,7 +16,7 @@ namespace stress.execution
 {
     public class StressTestShim
     {
-        ITestOutputHelper _output;
+        private ITestOutputHelper _output;
 
         public StressTestShim(ITestOutputHelper output)
         {
@@ -40,7 +40,7 @@ namespace stress.execution
                 _output.WriteLine($"EXEC: chmod 777 {file}");
 
                 ProcessStartInfo startInfo = new ProcessStartInfo() { FileName = "chmod", Arguments = $"777 {file}", UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
-                
+
                 Process p = Process.Start(startInfo);
 
                 p.WaitForExit();
@@ -52,7 +52,7 @@ namespace stress.execution
                     throw new Exception($"Setting shell script permissions failed with non-zero exit code {p.ExitCode}"); // Assert.True(false, string.Format("Stress tests returned error code of {0}.", p.ExitCode));
                 }
 
-                testProc = new ProcessStartInfo() { FileName ="bash", Arguments = file, UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+                testProc = new ProcessStartInfo() { FileName = "bash", Arguments = file, UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
             }
             else
             {
@@ -123,9 +123,9 @@ namespace stress.execution
 
             public void Write(string str)
             {
-                lock(s_bufferlock)
+                lock (s_bufferlock)
                 {
-                    for(int i = 0; i < str.Length; i++)
+                    for (int i = 0; i < str.Length; i++)
                     {
                         Write(str[i]);
                     }
@@ -141,7 +141,7 @@ namespace stress.execution
                     _buff[++_curIx % _size] = val;
                 }
             }
-            
+
 
             public void FlushToConsole()
             {
@@ -166,13 +166,11 @@ namespace stress.execution
                     }
 
                     _output.WriteLine(builder.ToString());
-                    
+
                     //reset the buffer
                     _curIx = -1;
                 }
             }
-            
-            
         }
     }
 }
