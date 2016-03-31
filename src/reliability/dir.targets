@@ -1,7 +1,0 @@
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\dir.targets" />
-
-  <Target Name="AfterBuild" Condition="Exists('$(MSBuildThisFileDirectory)$(MSBuildProjectName).nuspec')">
-      <Exec Command="$(NuGetToolPath) pack $(MSBuildThisFileDirectory)$(MSBuildProjectName).nuspec -OutputDirectory $(NugetPackageOutDir) -Properties Configuration=$(Configuration);BinDir=$(OutputPath) -Version $(ReliabilityNugetVersion)" />
-  </Target>
-</Project>
