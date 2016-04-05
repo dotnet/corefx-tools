@@ -41,7 +41,7 @@ namespace StackParser
             Console.WriteLine();
             Console.WriteLine(" All arguments are optional, but at least one pdb file or one PE file need to be defined.");
             Console.WriteLine();
-            Console.WriteLine("    /pdb {pdbFiles}       A non empty list of pdb files to be used");
+            Console.WriteLine("    /pdbs {pdbFiles}      A non empty list of pdb files to be used");
             Console.WriteLine("    /modules {PE files}   A non empty list of loaded modules used.");
             Console.WriteLine("                          Symbols are fetched from the symbol store.");
             Console.WriteLine("    /keep                 Keep the pdb files.");
@@ -190,11 +190,13 @@ namespace StackParser
 
             List<string> tmpFileList = new List<string>();
 
+            System.IO.StreamReader sr = null;
+            System.IO.StreamWriter sw = null;
             System.IO.TextReader tr;
             System.IO.TextWriter tw = null;
             if (!String.IsNullOrEmpty(s_inputFile) && File.Exists(s_inputFile))
             {
-                tr = new System.IO.StreamReader(s_inputFile);
+                tr = sr = new System.IO.StreamReader(s_inputFile);
             }
             else
             {
@@ -204,7 +206,7 @@ namespace StackParser
             if (!String.IsNullOrEmpty(s_outputFile))
             {
                 // create file (appened if it exists)
-                tw = new StreamWriter(s_outputFile, true);
+                tw = sw = new StreamWriter(s_outputFile, true);
                 
             }
             if (tw == null)
@@ -259,6 +261,16 @@ namespace StackParser
                     // construct our own path
                     s_symbolServerPath = "srv*" + s_localSymbolRoot + "*" + internalSymbolServer;
                 }
+            }
+
+            if (sr != null)
+            {
+                sr.Close();
+            }
+
+            if (sw != null)
+            {
+                sw.Close();
             }
 
             while((line = tr.ReadLine()) != null)
@@ -321,7 +333,6 @@ namespace StackParser
                     tw.WriteLine(line);
                 }
             }
-
 
             // clean up
 
