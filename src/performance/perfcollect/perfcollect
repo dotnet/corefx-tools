@@ -158,13 +158,27 @@ declare -a DotNETRuntime_TypeKeyword=(
 )
 
 declare -a DotNETRuntime_GCHeapDumpKeyword=(
+	DotNETRuntime:GCTriggered
+	DotNETRuntime:GCStart
+	DotNETRuntime:GCStart_V1
+	DotNETRuntime:GCStart_V2
+	DotNETRuntime:GCEnd
+	DotNETRuntime:GCEnd_V1
+	DotNETRuntime:GCJoin_V2
+	DotNETRuntime:BulkType
 	DotNETRuntime:GCBulkRootEdge
 	DotNETRuntime:GCBulkRootConditionalWeakTableElementEdge
 	DotNETRuntime:GCBulkNode
 	DotNETRuntime:GCBulkEdge
+	DotNETRuntime:GCGenerationRange
+	DotNETRuntime:GCMarkStackRoots
+	DotNETRuntime:GCMarkFinalizeQueueRoots
+	DotNETRuntime:GCMarkHandles
+	DotNETRuntime:GCMarkOlderGenerationRoots
 	DotNETRuntime:GCBulkRootCCW
 	DotNETRuntime:GCBulkRCW
 	DotNETRuntime:GCBulkRootStaticVar
+	DotNETRuntime:GCMarkWithType
 )
 
 declare -a DotNETRuntime_GCSampledObjectAllocationHighKeyword=(
@@ -760,7 +774,7 @@ IsUbuntu()
 			ubuntu=1
 		fi
 	fi
-        
+	    
 	echo $ubuntu
 }
 
@@ -1133,6 +1147,9 @@ SetupLTTngSession()
 		elif [ "$events" == "threading" ]
 		then
 			EnableLTTngEvents ${DotNETRuntime_ThreadingKeyword[@]}
+		elif [ "$events" == "heapdump" ]
+		then
+			EnableLTTngEvents ${DotNETRuntime_GCHeapDumpKeyword[@]}
 		fi
 	fi
 }
