@@ -271,7 +271,7 @@ namespace StackParser
                 {
                     string moduleStr = frags[0];
                     int idx = moduleStr.LastIndexOf(' ');
-                    if (idx < 0) idx = 0;
+                    if (idx < 0) idx = -1;
                     string moduleName = moduleStr.Substring(idx + 1);
                     string prefix = moduleStr.Substring(0, idx + 1);
 
