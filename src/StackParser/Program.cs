@@ -263,16 +263,6 @@ namespace StackParser
                 }
             }
 
-            if (sr != null)
-            {
-                sr.Close();
-            }
-
-            if (sw != null)
-            {
-                sw.Close();
-            }
-
             while((line = tr.ReadLine()) != null)
             {
                 const string separator = "!<BaseAddress>+0x";
@@ -385,6 +375,16 @@ namespace StackParser
                         Console.Error.WriteLine(e.Message);
                     }
                 }
+            }
+
+            if (sr != null)
+            {
+                sr.Close();
+            }
+
+            if (sw != null)
+            {
+                sw.Close();
             }
         }
 
