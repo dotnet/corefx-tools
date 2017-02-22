@@ -24,8 +24,8 @@ namespace StackParser
         static string s_outputFile;
         static string s_symbolServerPath;
         static bool s_keepModules = false;
-        static Dictionary<string, IDiaSession> s_pdbMap = new Dictionary<string, IDiaSession>();
-        static Dictionary<string, string> s_moduleToPeFileMap = new Dictionary<string, string>();
+        static Dictionary<string, IDiaSession> s_pdbMap = new Dictionary<string, IDiaSession>(StringComparer.OrdinalIgnoreCase);
+        static Dictionary<string, string> s_moduleToPeFileMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         static List<string> s_pdbFileList = new List<string>();
         static char[] s_OptionValSeparator = { ':', '=' };
         static SymStore s_symStore = null;
