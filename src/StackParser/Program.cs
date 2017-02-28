@@ -24,8 +24,8 @@ namespace StackParser
         static string s_outputFile;
         static string s_symbolServerPath;
         static bool s_keepModules = false;
-        static Dictionary<string, IDiaSession> s_pdbMap = new Dictionary<string, IDiaSession>();
-        static Dictionary<string, string> s_moduleToPeFileMap = new Dictionary<string, string>();
+        static Dictionary<string, IDiaSession> s_pdbMap = new Dictionary<string, IDiaSession>(StringComparer.OrdinalIgnoreCase);
+        static Dictionary<string, string> s_moduleToPeFileMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         static List<string> s_pdbFileList = new List<string>();
         static char[] s_OptionValSeparator = { ':', '=' };
         static SymStore s_symStore = null;
@@ -263,16 +263,6 @@ namespace StackParser
                 }
             }
 
-            if (sr != null)
-            {
-                sr.Close();
-            }
-
-            if (sw != null)
-            {
-                sw.Close();
-            }
-
             while((line = tr.ReadLine()) != null)
             {
                 const string separator = "!<BaseAddress>+0x";
@@ -281,7 +271,7 @@ namespace StackParser
                 {
                     string moduleStr = frags[0];
                     int idx = moduleStr.LastIndexOf(' ');
-                    if (idx < 0) idx = 0;
+                    if (idx < 0) idx = -1;
                     string moduleName = moduleStr.Substring(idx + 1);
                     string prefix = moduleStr.Substring(0, idx + 1);
 
@@ -385,6 +375,16 @@ namespace StackParser
                         Console.Error.WriteLine(e.Message);
                     }
                 }
+            }
+
+            if (sr != null)
+            {
+                sr.Close();
+            }
+
+            if (sw != null)
+            {
+                sw.Close();
             }
         }
 
