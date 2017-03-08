@@ -41,7 +41,8 @@ namespace StackParser
             Console.WriteLine();
             Console.WriteLine(" All arguments are optional, but at least one pdb file or one PE file need to be defined.");
             Console.WriteLine();
-            Console.WriteLine("    /pdbs {pdbFiles}      A non empty list of pdb files to be used");
+            Console.WriteLine("    /pdbs {pdbFiles}      A non empty list of pdb files to be used.");
+            Console.WriteLine("                          Use wildcards to load more files from a single directory.");
             Console.WriteLine("    /modules {PE files}   A non empty list of loaded modules used.");
             Console.WriteLine("                          Symbols are fetched from the symbol store.");
             Console.WriteLine("    /keep                 Keep the pdb files.");
