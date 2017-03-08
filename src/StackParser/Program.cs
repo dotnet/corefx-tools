@@ -41,7 +41,8 @@ namespace StackParser
             Console.WriteLine();
             Console.WriteLine(" All arguments are optional, but at least one pdb file or one PE file need to be defined.");
             Console.WriteLine();
-            Console.WriteLine("    /pdbs {pdbFiles}      A non empty list of pdb files to be used");
+            Console.WriteLine("    /pdbs {pdbFiles}      A non empty list of pdb files to be used.");
+            Console.WriteLine("                          Use wildcards to load more files from a single directory.");
             Console.WriteLine("    /modules {PE files}   A non empty list of loaded modules used.");
             Console.WriteLine("                          Symbols are fetched from the symbol store.");
             Console.WriteLine("    /keep                 Keep the pdb files.");
@@ -169,17 +170,36 @@ namespace StackParser
 
             foreach (string pdbName in s_pdbFileList)
             {
-                if (!File.Exists(pdbName))
-                {
-                    continue;
-                }
-
                 try
                 {
                     string moduleName = Path.GetFileNameWithoutExtension(pdbName);
-                    var pdbSession = DiaHelper.LoadPDB(pdbName);
-                    if (pdbSession != null)
-                        s_pdbMap[moduleName] = pdbSession;
+                    if (moduleName.Contains("*") || moduleName.Contains("?"))
+                    {
+                        string pdbPath = Path.GetDirectoryName(pdbName);
+                        if (string.IsNullOrEmpty(pdbPath))
+                        {
+                            pdbPath = Directory.GetCurrentDirectory();
+                        }
+                        string pdbSearchPattern = Path.GetFileName(pdbName);
+                        foreach (string fileName in Directory.GetFiles(pdbPath, pdbSearchPattern))
+                        {
+                            moduleName = Path.GetFileNameWithoutExtension(fileName);
+                            var pdbSession = DiaHelper.LoadPDB(fileName);
+                            if (pdbSession != null)
+                                s_pdbMap[moduleName] = pdbSession;
+                        }
+                    }
+                    else
+                    {
+                        string fullName = Path.GetFullPath(pdbName);
+                        if (!File.Exists(fullName))
+                        {
+                            continue;
+                        }
+                        var pdbSession = DiaHelper.LoadPDB(fullName);
+                        if (pdbSession != null)
+                            s_pdbMap[moduleName] = pdbSession;
+                    }
                 }
                 catch (Exception e)
                 {
@@ -207,7 +227,7 @@ namespace StackParser
             {
                 // create file (appened if it exists)
                 tw = sw = new StreamWriter(s_outputFile, true);
-                
+
             }
             if (tw == null)
             {
@@ -216,7 +236,7 @@ namespace StackParser
 
             string line;
 
-            // If we are using a pre-defined 
+            // If we are using a pre-defined
             if (!String.IsNullOrEmpty(s_symbolServerPath))
             {
                 s_keepModules = true;
@@ -408,7 +428,7 @@ namespace StackParser
         {
             string retVal;
 
-            // look in the "cache" of already successfully opened 
+            // look in the "cache" of already successfully opened
             if (s_pdbFileForModule.TryGetValue(fileName, out retVal))
             {
                 return retVal;
@@ -451,6 +471,6 @@ namespace StackParser
                 return 0;
             }
         }
-        
+
     }
 }
