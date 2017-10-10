@@ -21,7 +21,7 @@ RUN mkdir hw && cd hw && /dotnet_cli/dotnet new && \
 RUN mkdir /perf && cd /perf && curl -OL https://aka.ms/perfcollect && chmod +x perfcollect
 
 # Install perf and LTTng dependencies.
-RUN apt-get -y install linux-tools-common linux-tools-`uname -r` linux-cloud-tools-`uname -r` lttng-tools lttng-modules-dkms liblttng-ust0 zip
+RUN apt-get -y install linux-tools-common linux-tools-generic linux-cloud-tools-generic lttng-tools lttng-modules-dkms liblttng-ust0 zip
 
 # Set tracing environment variables.
 ENV COMPlus_PerfMapEnabled 1
