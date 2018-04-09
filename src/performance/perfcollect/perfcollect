@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 
 #############################################################################################################
 # .NET Performance Data Collection Script
@@ -29,7 +29,7 @@
 # 1. Run this script: ./perfcollect view samplePerfTrace.trace.zip
 #    This will extract the trace, place and register all symbol files and JIT-compiled symbol information
 #    and start the perf_event viewer.  By default, you will be looking at a callee view - stacks are ordered
-#    top down.  For a caller or bottom up view, specify '-graphtype caller'. 
+#    top down.  For a caller or bottom up view, specify '-graphtype caller'.
 #############################################################################################################
 
 ######################################
@@ -666,7 +666,10 @@ InitializeLog()
 	# The system information.
 	LogAppend 'Machine info: '  `uname -a`
 	LogAppend 'perf version:'   `perf --version`
-	LogAppend 'LTTng version: ' `lttng --version`
+	if (($useLTTng == 1))
+	then
+		LogAppend 'LTTng version: ' `lttng --version`
+	fi
 	LogAppend
 }
 
@@ -843,7 +846,7 @@ IsUbuntu()
 			ubuntu=1
 		fi
 	fi
-        
+
 	echo $ubuntu
 }
 
@@ -1015,7 +1018,7 @@ SupportsAutoInstall()
 	then
 		supportsAutoInstall=1
 	fi
-	
+
 	echo $supportsAutoInstall
 }
 
@@ -1053,7 +1056,10 @@ EnsurePrereqsInstalled()
 			echo "Install LTTng to proceed."
 		fi
 		ResetText
-		exit 1
+		if (( $useLTTng == 1 ))
+		then
+			exit 1
+		fi
 
 	fi
 
@@ -1105,7 +1111,7 @@ ProcessArguments()
 	then
 		return
 	fi
-	
+
 	# Not enough arguments.
 	if [ "$#" -le "1" ]
 	then
@@ -1199,7 +1205,7 @@ ProcessArguments()
 			echo "Unknown arg ${arg}, ignored..."
 		fi
 	done
-	
+
 }
 
 
@@ -1513,7 +1519,7 @@ ProcessCollectedData()
 	fi
 
 	WriteStatus "Compressing trace files"
-	
+
 	# Move all collected files to the new directory.
 	RunSilent "mv * $directoryName"
 
@@ -1635,7 +1641,7 @@ BuildPerfRecordArgs()
 	then
 		collectionArgs="$collectionArgs -e cycles,instructions,branches,cache-misses"
 	fi
-	
+
 	# Enable context switches.
 	if [ $collect_threadTime -eq 1 ]
 	then
@@ -1665,7 +1671,7 @@ BuildPerfRecordArgs()
 		durationString="sleep ${duration}"
 	fi
 
-	# Add the events onto the collection command line args.	
+	# Add the events onto the collection command line args.
 	collectionArgs="$collectionArgs -e $eventString $durationString"
 }
 
@@ -1747,7 +1753,7 @@ DoLiveTrace()
 PropSymbolsAndMapFilesForView()
 {
 	# Get the current directory
-	local currentDir=`pwd`	
+	local currentDir=`pwd`
 
 	# Copy map files to /tmp since they aren't supported by perf buildid-cache.
 	local mapFiles=`find -name *.map`
@@ -1770,10 +1776,10 @@ DoView()
 {
 	# Generate a temp directory to extract the trace files into.
 	local tempDir=`mktemp -d`
-	
+
 	# Extract the trace files.
 	$unzipcmd $inputTraceName -d $tempDir
-	
+
 	# Move the to temp directory.
 	pushd $tempDir
 	cd `ls`
@@ -1805,7 +1811,7 @@ DoView()
 	then
 		babeltrace lttngTrace/ | more
 	fi
-	
+
 	# Switch back to the original directory.
 	popd
 
@@ -1825,14 +1831,14 @@ then
 	exit 0
 fi
 
+# Process arguments.
+ProcessArguments $@
+
 # Initialize the log.
 InitializeLog
 
 # Ensure prerequisites are installed.
 EnsurePrereqsInstalled
-
-# Process arguments.
-ProcessArguments $@
 
 # Take the appropriate action.
 if [ "$action" == "collect" ]
