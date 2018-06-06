@@ -1750,7 +1750,7 @@ PropSymbolsAndMapFilesForView()
 	local currentDir=`pwd`	
 
 	# Copy map files to /tmp since they aren't supported by perf buildid-cache.
-	local mapFiles=`find -name *.map`
+	local mapFiles=`find $currentDir -name *.map`
 	for mapFile in $mapFiles
 	do
 		echo "Copying $mapFile to /tmp."
