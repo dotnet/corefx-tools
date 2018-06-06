@@ -652,7 +652,7 @@ RunSilent()
 # Forwards SIGINT to the child process
 RunForwardSilent()
 {
-	$* > /dev/null 2>&1  & sleep 1
+        $* > /dev/null 2>&1  & sleep 1
         pid=$!
 
         for (( ; ; ))
