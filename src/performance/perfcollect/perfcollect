@@ -649,6 +649,24 @@ RunSilent()
 	fi
 }
 
+# Forwards SIGINT to the child process
+RunForwardSilent()
+{
+        $* > /dev/null 2>&1  & sleep 1
+        pid=$!
+
+        for (( ; ; ))
+        do
+                if [ "$handlerInvoked" == "1" ]
+                then
+                        kill -INT $pid
+                        break;
+                else
+                        sleep 1
+                fi
+        done
+}
+
 InitializeLog()
 {
 	# Pick the log file name.
@@ -1734,7 +1752,7 @@ DoCollect()
 	# Start perf record.
 	if [ "$usePerf" == "1" ]
 	then
-		RunSilent $perfcmd $collectionArgs
+		RunForwardSilent $perfcmd $collectionArgs
 	else
 		# Wait here until CTRL+C handler gets called when user types CTRL+C.
                 LogAppend "Waiting for CTRL+C handler to get called."
