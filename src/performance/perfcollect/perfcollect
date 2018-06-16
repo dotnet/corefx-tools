@@ -665,7 +665,7 @@ InitializeLog()
 
 	# The system information.
 	LogAppend 'Machine info: '  `uname -a`
-	LogAppend 'perf version:'   `perf --version`
+	LogAppend 'perf version:'   `$perfcmd --version`
 	if (($useLTTng == 1))
 	then
 		LogAppend 'LTTng version: ' `lttng --version`
@@ -761,6 +761,27 @@ EnsureRoot()
 DiscoverCommands()
 {
 	perfcmd=`GetCommandFullPath "perf"`
+	if [ "$(IsDebian)" == "1" ]
+	then
+		# Test perf to see if it successfully runs or fails because it doesn't match the kernel version.
+		$perfcmd --version > /dev/null 2>&1
+		if [ "$?" == "1" ]
+		then
+			perf49Cmd=`GetCommandFullPath "perf_4.9"`
+			$perf49Cmd --version > /dev/null 2>&1
+			if [ "$?" == "0" ]
+			then
+				perfcmd=$perf49Cmd
+		    else
+                perf316Cmd=`GetCommandFullPath "perf_3.16"`
+                $perf316Cmd --version > /dev/null 2>&1
+                if [ "$?" == "0" ]
+                then
+                    perfcmd=$perf316Cmd
+                fi
+            fi
+		fi
+	fi
 	lttngcmd=`GetCommandFullPath "lttng"`
 	zipcmd=`GetCommandFullPath "zip"`
 	unzipcmd=`GetCommandFullPath "unzip"`
@@ -801,6 +822,9 @@ IsDebian()
 	if [[ $uname =~ .*Debian.* ]]
 	then
 		debian=1
+	elif [ -f /etc/debian_version ]
+	then
+		debian=1
 	fi
 
 	echo $debian
@@ -812,7 +836,7 @@ InstallPerf_Debian()
 	EnsureRoot
 
 	# Install zip and perf.
-	apt-get install zip linux-tools
+	apt-get install zip linux-tools binutils
 }
 
 IsSUSE()
@@ -1044,7 +1068,7 @@ EnsurePrereqsInstalled()
 	fi
 
 	# If LTTng is installed, consider using it.
-	if [ "$lttngcmd" == "" ]
+	if [ "$lttngcmd" == "" ] && [ "$useLTTng" == "1" ]
 	then
 		RedText
 		echo "LTTng not installed."
@@ -1427,10 +1451,15 @@ ProcessCollectedData()
 		    WriteStatus "...FINISHED"
 
 		else
-	            LogAppend "crossgen not found, skipping native image map generation."
-		    WriteStatus "...SKIPPED"
+        if [ "$buildidList" != "" ]
+        then
+            LogAppend "crossgen not found, skipping native image map generation."
+            WriteStatus "...SKIPPED"
             WriteWarning "Crossgen not found.  Framework symbols will be unavailable."
             WriteWarning "See https://github.com/dotnet/coreclr/blob/master/Documentation/project-docs/linux-performance-tracing.md#resolving-framework-symbols for details."
+        else
+            WriteWarning "libcoreclr.so not found in perf data. Please verify that your .NET Core process is running and consuming CPU."
+        fi
 		fi
 
 		IFS=$OLDIFS
