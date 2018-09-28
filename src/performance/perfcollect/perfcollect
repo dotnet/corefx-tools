@@ -792,6 +792,29 @@ GetCommandFullPath()
 ######################################
 # Prerequisite Installation
 ######################################
+IsAmazonLinux()
+{
+	local al2=0
+	if[ -f /etc/system-release ]
+	then 
+		local amz=`cat /etc/system-release | grep Amazon`
+		if [ "$amz" == "Amazon Linux 2" ]
+		then
+			al2=1
+		fi		
+	fi
+	echo $al2
+}
+
+InstallPerf_AL2()
+{
+	# Disallow non-root users.
+	EnsureRoot
+
+	# Install perf
+	yum install perf zip unzip
+}
+
 IsRHEL()
 {
 	local rhel=0
@@ -897,8 +920,67 @@ InstallPerf()
 	elif [ "$(IsRHEL)" == "1" ]
 	then
 		InstallPerf_RHEL
+	elif [ "$(IsAmazonLinux)" == "1" ]
+	then
+		InstallPerf_AL2
 	else
 		FatalError "Auto install unsupported for this distribution.  Install perf manually to continue."
+	fi
+}
+
+InstallLTTng_AL2()
+{
+	# Disallow non-root users.
+	EnsureRoot
+
+	packageRepo="https://packages.efficios.com/repo.files/EfficiOS-RHEL7-x86-64.repo"
+
+	# Prompt for confirmation, since we need to add a new repository.
+	BlueText
+	echo "LTTng installation requires that a new package repo be added to your yum configuration."
+	echo "The package repo url is: $packageRepo"
+	echo ""
+	read -p "Would you like to add the LTTng package repo to your YUM configuration? [Y/N]" resp
+	ResetText
+	if [ "$resp" == "Y" ] || [ "$resp" == "y" ]
+	then
+		# Make sure that wget is installed.
+		BlueText
+		echo "Installing wget.  Required to add package repo."
+		ResetText
+		yum install wget
+
+		# Connect to the LTTng package repo.
+		wget -P /etc/yum.repos.d/ $packageRepo
+
+		# Import package signing key.
+		rpmkeys --import https://packages.efficios.com/rhel/repo.key
+
+		# Update the yum package database.
+		yum updateinfo
+
+		# Install kernel
+		yum install kernel-devel-$(uname -r)
+
+		# Generate signing key
+		openssl req -new -x509 -newkey rsa:2048 -keyout /usr/src/kernels/$(uname -r)/certs/signing_key.pem -outform DER -out /usr/src/kernels/$(uname -r)/certs/signing_key.x509 -nodes -subj "/CN=Owner/"
+
+		# Clean up old kernel 
+		rpm -q kernel 
+		package-cleanup --oldkernels --count=1
+
+		# Install LTTng
+		yum install lttng-tools lttng-ust babeltrace
+		
+		cd $(mktemp -d) &&
+    	wget http://lttng.org/files/lttng-modules/lttng-modules-latest-2.10.tar.bz2 &&
+    	tar -xf lttng-modules-latest-2.10.tar.bz2 &&
+    	cd lttng-modules-2.10.* &&
+    	make &&
+    	sudo make modules_install &&
+    	sudo depmod -a 
+
+		# yum install kmod-lttng-modules 
 	fi
 }
 
@@ -1027,6 +1109,9 @@ InstallLTTng()
 	elif [ "$(IsRHEL)" == "1" ]
 	then
 		InstallLTTng_RHEL
+	elif [ "$(IsAmazonLinux)" == "1" ]	
+	then
+		InstallLTTng_AL2
 	else
 		FatalError "Auto install unsupported for this distribution.  Install lttng and lttng-ust packages manually."
 	fi
@@ -1233,13 +1318,14 @@ ProcessArguments()
 ##
 lttngSessionName=''
 lttngTraceDir=''
+output=''
 CreateLTTngSession()
 {
 	if [ "$action" == "livetrace" ]
 	then
-		output=`lttng create --live`
+		output=`$lttngcmd create --live`
 	else
-		output=`lttng create`
+		output=`$lttngcmd create`
 	fi
 
 	lttngSessionName=`echo $output | grep -o "Session.*created." | sed 's/\(Session \| created.\)//g'`
@@ -1249,9 +1335,9 @@ CreateLTTngSession()
 SetupLTTngSession()
 {
 	# Setup per-event context information.
-	RunSilent "lttng add-context --userspace --type vpid"
-	RunSilent "lttng add-context --userspace --type vtid"
-	RunSilent "lttng add-context --userspace --type procname"
+	RunSilent "$lttngcmd add-context --userspace --type vpid"
+	RunSilent "$lttngcmd add-context --userspace --type vtid"
+	RunSilent "$lttngcmd add-context --userspace --type procname"
 
 	if [ "$action" == "livetrace" ]
 	then
@@ -1296,7 +1382,7 @@ SetupLTTngSession()
 
 DestroyLTTngSession()
 {
-	RunSilent "lttng destroy $lttngSessionName"
+	RunSilent "$lttngcmd destroy $lttngSessionName"
 }
 
 StartLTTngCollection()
@@ -1304,12 +1390,12 @@ StartLTTngCollection()
 	CreateLTTngSession
 	SetupLTTngSession
 
-	RunSilent "lttng start $lttngSessionName"
+	RunSilent "$lttngcmd start $lttngSessionName"
 }
 
 StopLTTngCollection()
 {
-	RunSilent "lttng stop $lttngSessionName"
+	RunSilent "$lttngcmd stop $lttngSessionName"
 
 	DestroyLTTngSession
 }
