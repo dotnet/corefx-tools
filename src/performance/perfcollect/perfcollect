@@ -795,7 +795,7 @@ GetCommandFullPath()
 IsAmazonLinux()
 {
 	local al2=0
-	if[ -f /etc/system-release ]
+	if [ -f /etc/system-release ]
 	then 
 		local amz=`cat /etc/system-release | grep Amazon`
 		if [ "$amz" == "Amazon Linux 2" ]
@@ -965,22 +965,25 @@ InstallLTTng_AL2()
 		# Generate signing key
 		openssl req -new -x509 -newkey rsa:2048 -keyout /usr/src/kernels/$(uname -r)/certs/signing_key.pem -outform DER -out /usr/src/kernels/$(uname -r)/certs/signing_key.x509 -nodes -subj "/CN=Owner/"
 
-		# Clean up old kernel 
+		# Query to check installed kernels on this machine
 		rpm -q kernel 
-		package-cleanup --oldkernels --count=1
+		# Clean up old kernel (AL2 had duplicated kernel issue, uncomment next two commands if error happened)
+		# package-cleanup --oldkernels --count=1 
+		# $ sudo mv /usr/src/kernels/$(uname -r)/include/linux/version.h /usr/src/kernels/$(uname -r)/include/linux/version.h.bak
+
+		# AL2 pre required as follow libraries:  libuuid, popt, libxml2 and Userspace RCU (only liburcu is not available on AL2)
+		cd $(mktemp -d) &&
+		wget https://lttng.org/files/urcu/userspace-rcu-latest-0.10.tar.bz2 &&
+    	tar -xf userspace-rcu-latest-0.10.tar.bz2 &&
+    	cd userspace-rcu-0.10.* &&
+    	./configure &&
+    	make &&
+    	sudo make install &&
+    	sudo ldconfig
+		export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 
 		# Install LTTng
-		yum install lttng-tools lttng-ust babeltrace
-		
-		cd $(mktemp -d) &&
-    	wget http://lttng.org/files/lttng-modules/lttng-modules-latest-2.10.tar.bz2 &&
-    	tar -xf lttng-modules-latest-2.10.tar.bz2 &&
-    	cd lttng-modules-2.10.* &&
-    	make &&
-    	sudo make modules_install &&
-    	sudo depmod -a 
-
-		# yum install kmod-lttng-modules 
+		yum install lttng-tools lttng-ust kmod-lttng-modules babeltrace		
 	fi
 }
 
