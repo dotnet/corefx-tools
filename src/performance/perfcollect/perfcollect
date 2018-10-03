@@ -948,19 +948,19 @@ InstallLTTng_AL2()
 		BlueText
 		echo "Installing wget.  Required to add package repo."
 		ResetText
-		yum install wget
+		yum -y install wget
 
 		# Connect to the LTTng package repo.
-		wget -P /etc/yum.repos.d/ $packageRepo
+		#wget -P /etc/yum.repos.d/ $packageRepo
 
 		# Import package signing key.
-		rpmkeys --import https://packages.efficios.com/rhel/repo.key
+		#rpmkeys --import https://packages.efficios.com/rhel/repo.key
 
 		# Update the yum package database.
 		yum updateinfo
 
 		# Install kernel
-		yum install kernel-devel-$(uname -r)
+		#yum install kernel-devel-$(uname -r)
 
 		# Generate signing key
 		openssl req -new -x509 -newkey rsa:2048 -keyout /usr/src/kernels/$(uname -r)/certs/signing_key.pem -outform DER -out /usr/src/kernels/$(uname -r)/certs/signing_key.x509 -nodes -subj "/CN=Owner/"
@@ -969,10 +969,31 @@ InstallLTTng_AL2()
 		rpm -q kernel 
 		# Clean up old kernel (AL2 had duplicated kernel issue, uncomment next two commands if error happened)
 		# package-cleanup --oldkernels --count=1 
-		# $ sudo mv /usr/src/kernels/$(uname -r)/include/linux/version.h /usr/src/kernels/$(uname -r)/include/linux/version.h.bak
+		# mv /usr/src/kernels/$(uname -r)/include/linux/version.h /usr/src/kernels/$(uname -r)/include/linux/version.h.bak
 
-		# AL2 pre required as follow libraries:  libuuid, popt, libxml2 and Userspace RCU (only liburcu is not available on AL2)
-		cd $(mktemp -d) &&
+		# Install LTTng
+		#yum install lttng-tools lttng-ust kmod-lttng-modules babeltrace 
+
+		## Build from source
+
+		# Store tarball source
+		mkdir /usr/src/lttng.org &&
+		cd /usr/src/lttng.org
+
+		# LTTng pre required as follow libraries:  libuuid, popt, libxml2 and Userspace RCU
+		# Install libuuid
+		yum -y install libuuid.x86_64 libuuid-devel.x86_64
+
+		# popt
+		wget http://rpm5.org/files/popt/popt-1.16.tar.gz && 
+		tar -xf popt-1.16.tar.gz && 
+    	cd  popt-1.16 && 
+    	./configure && 
+    	make && 
+    	sudo make install && 
+        ldconfig 
+
+		# Userspace-rcu		
 		wget https://lttng.org/files/urcu/userspace-rcu-latest-0.10.tar.bz2 &&
     	tar -xf userspace-rcu-latest-0.10.tar.bz2 &&
     	cd userspace-rcu-0.10.* &&
@@ -982,8 +1003,35 @@ InstallLTTng_AL2()
     	sudo ldconfig
 		export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 
-		# Install LTTng
-		yum install lttng-tools lttng-ust kmod-lttng-modules babeltrace		
+		# libxml2
+		yum -y install libxml2.x86_64 libxml2-devel.x86_64
+
+		# LTTng-UST 
+		wget http://lttng.org/files/lttng-ust/lttng-ust-latest-2.10.tar.bz2 && 
+		tar -xf lttng-ust-latest-2.10.tar.bz2 && 
+		cd lttng-ust-2.10.* && 
+		./configure && 
+		make && 
+		sudo make install && 
+		sudo ldconfig
+
+		# LTTng-Tools
+		wget http://lttng.org/files/lttng-tools/lttng-tools-latest-2.10.tar.bz2 &&
+		tar -xf lttng-tools-latest-2.10.tar.bz2 &&
+		cd lttng-tools-2.10.* && 
+		./configure && 
+		make && 
+		sudo make install && 
+		sudo ldconfig 
+
+		# Babeltrace
+		wget https://lttng.org/files/babeltrace/babeltrace-latest-1.2.tar.bz2 &&
+		tar -xf babeltrace-latest-1.2.tar.bz2 &&
+		cd babeltrace-1.2.* && 
+		./configure && 
+		make && 
+		sudo make install
+
 	fi
 }
 
