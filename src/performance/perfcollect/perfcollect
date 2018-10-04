@@ -666,7 +666,7 @@ InitializeLog()
 	# The system information.
 	LogAppend 'Machine info: '  `uname -a`
 	LogAppend 'perf version:'   `$perfcmd --version`
-	LogAppend 'LTTng version: ' `lttng --version`
+	LogAppend 'LTTng version: ' `$lttngcmd --version`
 	LogAppend
 }
 
@@ -779,7 +779,7 @@ DiscoverCommands()
             fi
 		fi
 	fi
-	lttngcmd=`GetCommandFullPath "lttng"`
+	lttngcmd="/usr/local/bin/lttng" # Not work on AL2 `GetCommandFullPath "lttng"`
 	zipcmd=`GetCommandFullPath "zip"`
 	unzipcmd=`GetCommandFullPath "unzip"`
 }
@@ -977,14 +977,14 @@ InstallLTTng_AL2()
 		## Build from source
 
 		# Store tarball source
-		mkdir /usr/src/lttng.org &&
-		cd /usr/src/lttng.org
+		mkdir /usr/src/lttng.org &&		
 
 		# LTTng pre required as follow libraries:  libuuid, popt, libxml2 and Userspace RCU
 		# Install libuuid
 		yum -y install libuuid.x86_64 libuuid-devel.x86_64
 
 		# popt
+		cd /usr/src/lttng.org
 		wget http://rpm5.org/files/popt/popt-1.16.tar.gz && 
 		tar -xf popt-1.16.tar.gz && 
     	cd  popt-1.16 && 
@@ -993,7 +993,8 @@ InstallLTTng_AL2()
     	sudo make install && 
         ldconfig 
 
-		# Userspace-rcu		
+		# Userspace-rcu
+		cd /usr/src/lttng.org		
 		wget https://lttng.org/files/urcu/userspace-rcu-latest-0.10.tar.bz2 &&
     	tar -xf userspace-rcu-latest-0.10.tar.bz2 &&
     	cd userspace-rcu-0.10.* &&
@@ -1006,7 +1007,8 @@ InstallLTTng_AL2()
 		# libxml2
 		yum -y install libxml2.x86_64 libxml2-devel.x86_64
 
-		# LTTng-UST 
+		# LTTng-UST
+		cd /usr/src/lttng.org
 		wget http://lttng.org/files/lttng-ust/lttng-ust-latest-2.10.tar.bz2 && 
 		tar -xf lttng-ust-latest-2.10.tar.bz2 && 
 		cd lttng-ust-2.10.* && 
@@ -1016,6 +1018,7 @@ InstallLTTng_AL2()
 		sudo ldconfig
 
 		# LTTng-Tools
+		cd /usr/src/lttng.org
 		wget http://lttng.org/files/lttng-tools/lttng-tools-latest-2.10.tar.bz2 &&
 		tar -xf lttng-tools-latest-2.10.tar.bz2 &&
 		cd lttng-tools-2.10.* && 
@@ -1025,12 +1028,14 @@ InstallLTTng_AL2()
 		sudo ldconfig 
 
 		# Babeltrace
-		wget https://lttng.org/files/babeltrace/babeltrace-latest-1.2.tar.bz2 &&
-		tar -xf babeltrace-latest-1.2.tar.bz2 &&
-		cd babeltrace-1.2.* && 
-		./configure && 
-		make && 
-		sudo make install
+		yum -y install babeltrace
+		#cd /usr/src/lttng.org
+		#wget https://lttng.org/files/babeltrace/babeltrace-latest-1.2.tar.bz2 &&
+		#tar -xf babeltrace-latest-1.2.tar.bz2 &&
+		#cd babeltrace-1.2.* && 
+		#./configure && 
+		#make && 
+		#sudo make install
 
 	fi
 }
@@ -1392,7 +1397,7 @@ SetupLTTngSession()
 
 	if [ "$action" == "livetrace" ]
 	then
-		RunSilent "lttng enable-event --userspace --tracepoint DotNETRuntime:EventSource"
+		RunSilent "$lttngcmd enable-event --userspace --tracepoint DotNETRuntime:EventSource"
 	elif [ "$gcCollectOnly" == "1" ]
 	then
 		usePerf=0
@@ -1457,7 +1462,7 @@ EnableLTTngEvents()
 	args=( "$@" )
 	for (( i=0; i<${#args[@]}; i++ ))
 	do
-		RunSilent "lttng enable-event -s $lttngSessionName -u --tracepoint ${args[$i]}"
+		RunSilent "$lttngcmd enable-event -s $lttngSessionName -u --tracepoint ${args[$i]}"
 	done
 }
 
