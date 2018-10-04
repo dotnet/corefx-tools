@@ -5,6 +5,10 @@
    https://github.com/dotnet/coreclr/blob/master/Documentation/project-docs/linux-performance-tracing.md
 
 
+### Download shell script
+   $curl -OL  https://raw.githubusercontent.com/lbthanh/corefx-tools/master/src/performance/perfcollect/perfcollect
+   $chmod +x perfcollect
+
 ### Install
     $sudo ./perfcollect install
 
@@ -51,7 +55,7 @@
         sudo cp ~/.nuget/packages/runtime.linux-x64.microsoft.netcore.app/<version>/tools/crossgen /usr/share/dotnet/shared/Microsoft.NETCore.App/<version>/
 ```
 
-    * For running application, you need new dotnet project then copy crossgen file
+* For running application, you need new dotnet project then copy crossgen file
 ```bash
         mkdir /tmp/dotnetsample
         cd /tmp/dotnetsample
