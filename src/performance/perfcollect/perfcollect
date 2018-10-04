@@ -933,7 +933,8 @@ InstallLTTng_AL2()
 	# Disallow non-root users.
 	EnsureRoot
 
-	packageRepo="https://packages.efficios.com/repo.files/EfficiOS-RHEL7-x86-64.repo"
+	# packageRepo="https://packages.efficios.com/repo.files/EfficiOS-RHEL7-x86-64.repo"
+	packageRepo="https://lttng.org/files"
 
 	# Prompt for confirmation, since we need to add a new repository.
 	BlueText
@@ -950,6 +951,7 @@ InstallLTTng_AL2()
 		ResetText
 		yum -y install wget
 
+		### Build via epel packages ###
 		# Connect to the LTTng package repo.
 		#wget -P /etc/yum.repos.d/ $packageRepo
 
@@ -974,7 +976,7 @@ InstallLTTng_AL2()
 		# Install LTTng
 		#yum install lttng-tools lttng-ust kmod-lttng-modules babeltrace 
 
-		## Build from source
+		### Build from source ###
 
 		# Store tarball source
 		mkdir /usr/src/lttng.org &&		
