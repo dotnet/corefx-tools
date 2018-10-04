@@ -951,6 +951,10 @@ InstallLTTng_AL2()
 		ResetText
 		yum -y install wget
 
+		# Install build package
+		sudo yum -y install gcc gcc-c++ glib2 glibc make zlib-devel
+		sudo amazon-linux-extras install epel
+
 		### Build via epel packages ###
 		# Connect to the LTTng package repo.
 		#wget -P /etc/yum.repos.d/ $packageRepo
@@ -1030,7 +1034,7 @@ InstallLTTng_AL2()
 		sudo ldconfig 
 
 		# Babeltrace
-		yum -y install babeltrace
+		yum -y install babeltrace # need enable epel: $sudo amazon-linux-extras install epel
 		#cd /usr/src/lttng.org
 		#wget https://lttng.org/files/babeltrace/babeltrace-latest-1.2.tar.bz2 &&
 		#tar -xf babeltrace-latest-1.2.tar.bz2 &&
