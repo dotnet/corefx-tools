@@ -6,8 +6,10 @@
 
 
 ### Download shell script
+```bash
    $curl -OL  https://raw.githubusercontent.com/lbthanh/corefx-tools/master/src/performance/perfcollect/perfcollect
    $chmod +x perfcollect
+```
 
 ### Install
     $sudo ./perfcollect install
