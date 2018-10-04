@@ -48,5 +48,16 @@
 
     Copy crossgen next to libcoreclr.so
 ``` bash 
-        sudo cp ~/.nuget/packages/runtime.linux-x64.microsoft.netcore.app/2.1.2/tools/crossgen /usr/share/dotnet/shared/Microsoft.NETCore.App/2.1.2/
+        sudo cp ~/.nuget/packages/runtime.linux-x64.microsoft.netcore.app/<version>/tools/crossgen /usr/share/dotnet/shared/Microsoft.NETCore.App/<version>/
+```
+
+    * For running application, you need new dotnet project then copy crossgen file
+```bash
+        mkdir /tmp/dotnetsample
+        cd /tmp/dotnetsample
+        dotnet new webapi
+        dotnet restore
+        dotnet publish --self-contained -r linux-x64
+
+        sudo cp ~/.nuget/packages/runtime.linux-x64.microsoft.netcore.app/<version>/tools/crossgen /usr/share/dotnet/shared/Microsoft.NETCore.App/<version>/
 ```
