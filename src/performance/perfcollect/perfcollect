@@ -664,7 +664,7 @@ InitializeLog()
 	# The system information.
 	LogAppend 'Machine info: '  `uname -a`
 	LogAppend 'perf version:'   `$perfcmd --version`
-	LogAppend 'LTTng version: ' `lttng --version`
+	LogAppend 'LTTng version: ' `$lttngcmd --version`
 	LogAppend
 }
 
@@ -777,7 +777,7 @@ DiscoverCommands()
             fi
 		fi
 	fi
-	lttngcmd=`GetCommandFullPath "lttng"`
+	lttngcmd="/usr/local/bin/lttng" # Not work on AL2 `GetCommandFullPath "lttng"`
 	zipcmd=`GetCommandFullPath "zip"`
 	unzipcmd=`GetCommandFullPath "unzip"`
 }
@@ -790,6 +790,29 @@ GetCommandFullPath()
 ######################################
 # Prerequisite Installation
 ######################################
+IsAmazonLinux()
+{
+	local al2=0
+	if [ -f /etc/system-release ]
+	then 
+		local amz=`cat /etc/system-release | grep Amazon`
+		if [ "$amz" == "Amazon Linux 2" ]
+		then
+			al2=1
+		fi		
+	fi
+	echo $al2
+}
+
+InstallPerf_AL2()
+{
+	# Disallow non-root users.
+	EnsureRoot
+
+	# Install perf
+	yum install perf zip unzip
+}
+
 IsRHEL()
 {
 	local rhel=0
@@ -895,8 +918,129 @@ InstallPerf()
 	elif [ "$(IsRHEL)" == "1" ]
 	then
 		InstallPerf_RHEL
+	elif [ "$(IsAmazonLinux)" == "1" ]
+	then
+		InstallPerf_AL2
 	else
 		FatalError "Auto install unsupported for this distribution.  Install perf manually to continue."
+	fi
+}
+
+InstallLTTng_AL2()
+{
+	# Disallow non-root users.
+	EnsureRoot
+
+	# packageRepo="https://packages.efficios.com/repo.files/EfficiOS-RHEL7-x86-64.repo"
+	packageRepo="https://lttng.org/files"
+
+	# Prompt for confirmation, since we need to add a new repository.
+	BlueText
+	echo "LTTng installation requires that a new package repo be added to your yum configuration."
+	echo "The package repo url is: $packageRepo"
+	echo ""
+	read -p "Would you like to add the LTTng package repo to your YUM configuration? [Y/N]" resp
+	ResetText
+	if [ "$resp" == "Y" ] || [ "$resp" == "y" ]
+	then
+		# Make sure that wget is installed.
+		BlueText
+		echo "Installing wget.  Required to add package repo."
+		ResetText
+		yum -y install wget
+
+		### Build via epel packages ###
+		# Connect to the LTTng package repo.
+		#wget -P /etc/yum.repos.d/ $packageRepo
+
+		# Update packages
+		#yum updateinfo
+
+		# Import package signing key.
+		#rpmkeys --import https://packages.efficios.com/rhel/repo.key
+		
+		# Install LTTng
+		#yum install lttng-tools lttng-ust kmod-lttng-modules babeltrace 
+
+		### Build from source ###
+		# Install build package
+		#sudo yum -y install gcc gcc-c++ glib2 glibc make zlib-devel
+		# Install kernel
+		yum install kernel-devel-$(uname -r)
+		# Enable Extra Packages for Enterprise Linux 7 - x86_64
+		sudo amazon-linux-extras install epel
+
+		# Generate signing key (need it if older kernel version: 4.14.70-72.55.amzn2.x86_64)
+		# openssl req -new -x509 -newkey rsa:2048 -keyout /usr/src/kernels/$(uname -r)/certs/signing_key.pem -outform DER -out /usr/src/kernels/$(uname -r)/certs/signing_key.x509 -nodes -subj "/CN=Owner/"
+
+		# Query to check installed kernels on this machine
+		rpm -q kernel 
+		# Clean up old kernel (AL2 had duplicated kernel issue, uncomment next two commands if error happened)
+		# package-cleanup --oldkernels --count=1 
+		# mv /usr/src/kernels/$(uname -r)/include/linux/version.h /usr/src/kernels/$(uname -r)/include/linux/version.h.bak
+
+		# Store tarball source
+		mkdir /usr/src/lttng.org &&		
+
+		# LTTng pre required as follow libraries:  libuuid, popt, libxml2 and Userspace RCU
+		# Install libuuid
+		yum -y install libuuid.x86_64 libuuid-devel.x86_64
+
+		# popt
+		cd /usr/src/lttng.org
+		wget http://rpm5.org/files/popt/popt-1.16.tar.gz && 
+		tar -xf popt-1.16.tar.gz && 
+    	cd  popt-1.16 && 
+    	./configure && 
+    	make && 
+    	sudo make install && 
+        ldconfig 
+
+		# Userspace-rcu
+		cd /usr/src/lttng.org		
+		wget https://lttng.org/files/urcu/userspace-rcu-latest-0.10.tar.bz2 &&
+    	tar -xf userspace-rcu-latest-0.10.tar.bz2 &&
+    	cd userspace-rcu-0.10.* &&
+    	./configure &&
+    	make &&
+    	sudo make install &&
+    	sudo ldconfig
+		export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
+
+		# libxml2
+		yum -y install libxml2.x86_64 libxml2-devel.x86_64
+
+		# LTTng-UST
+		cd /usr/src/lttng.org
+		wget http://lttng.org/files/lttng-ust/lttng-ust-latest-2.10.tar.bz2 && 
+		tar -xf lttng-ust-latest-2.10.tar.bz2 && 
+		cd lttng-ust-2.10.* && 
+		./configure && 
+		make && 
+		sudo make install && 
+		sudo ldconfig
+
+		# LTTng-Tools
+		cd /usr/src/lttng.org
+		wget http://lttng.org/files/lttng-tools/lttng-tools-latest-2.10.tar.bz2 &&
+		tar -xf lttng-tools-latest-2.10.tar.bz2 &&
+		cd lttng-tools-2.10.* && 
+		./configure && 
+		make && 
+		sudo make install && 
+		sudo ldconfig 
+
+		# Babeltrace
+		yum -y install babeltrace # need enable epel: $sudo amazon-linux-extras install epel
+		
+		#cd /usr/src/lttng.org
+		#wget https://lttng.org/files/babeltrace/babeltrace-latest-1.2.tar.bz2 &&
+		#tar -xf babeltrace-latest-1.2.tar.bz2 &&
+		#cd babeltrace-1.2.* && 
+		#./configure && 
+		#make && 
+		#sudo make install
+
 	fi
 }
 
@@ -1025,6 +1169,9 @@ InstallLTTng()
 	elif [ "$(IsRHEL)" == "1" ]
 	then
 		InstallLTTng_RHEL
+	elif [ "$(IsAmazonLinux)" == "1" ]	
+	then
+		InstallLTTng_AL2
 	else
 		FatalError "Auto install unsupported for this distribution.  Install lttng and lttng-ust packages manually."
 	fi
@@ -1235,13 +1382,14 @@ ProcessArguments()
 ##
 lttngSessionName=''
 lttngTraceDir=''
+output=''
 CreateLTTngSession()
 {
 	if [ "$action" == "livetrace" ]
 	then
-		output=`lttng create --live`
+		output=`$lttngcmd create --live`
 	else
-		output=`lttng create`
+		output=`$lttngcmd create`
 	fi
 
 	lttngSessionName=`echo $output | grep -o "Session.*created." | sed 's/\(Session \| created.\)//g'`
@@ -1251,13 +1399,13 @@ CreateLTTngSession()
 SetupLTTngSession()
 {
 	# Setup per-event context information.
-	RunSilent "lttng add-context --userspace --type vpid"
-	RunSilent "lttng add-context --userspace --type vtid"
-	RunSilent "lttng add-context --userspace --type procname"
+	RunSilent "$lttngcmd add-context --userspace --type vpid"
+	RunSilent "$lttngcmd add-context --userspace --type vtid"
+	RunSilent "$lttngcmd add-context --userspace --type procname"
 
 	if [ "$action" == "livetrace" ]
 	then
-		RunSilent "lttng enable-event --userspace --tracepoint DotNETRuntime:EventSource"
+		RunSilent "$lttngcmd enable-event --userspace --tracepoint DotNETRuntime:EventSource"
 	elif [ "$gcCollectOnly" == "1" ]
 	then
 		usePerf=0
@@ -1302,7 +1450,7 @@ SetupLTTngSession()
 
 DestroyLTTngSession()
 {
-	RunSilent "lttng destroy $lttngSessionName"
+	RunSilent "$lttngcmd destroy $lttngSessionName"
 }
 
 StartLTTngCollection()
@@ -1310,12 +1458,12 @@ StartLTTngCollection()
 	CreateLTTngSession
 	SetupLTTngSession
 
-	RunSilent "lttng start $lttngSessionName"
+	RunSilent "$lttngcmd start $lttngSessionName"
 }
 
 StopLTTngCollection()
 {
-	RunSilent "lttng stop $lttngSessionName"
+	RunSilent "$lttngcmd stop $lttngSessionName"
 
 	DestroyLTTngSession
 }
@@ -1326,7 +1474,7 @@ EnableLTTngEvents()
 	args=( "$@" )
 	for (( i=0; i<${#args[@]}; i++ ))
 	do
-		RunSilent "lttng enable-event -s $lttngSessionName -u --tracepoint ${args[$i]}"
+		RunSilent "$lttngcmd enable-event -s $lttngSessionName -u --tracepoint ${args[$i]}"
 	done
 }
 
