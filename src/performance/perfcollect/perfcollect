@@ -838,11 +838,11 @@ InstallPerf_Debian()
 	EnsureRoot
 
     # Check for the existence of the linux-tools package.
-    pkgName = 'linux-tools'
+    pkgName='linux-tools'
     pkgCount=`apt-cache search $pkgName | grep -c $pkgName`
     if [ "$pkgCount" == "0" ]
     then
-        pkgName = 'linux-perf'
+        pkgName='linux-perf'
         pkgCount=`apt-cache search $pkgName | grep -c $pkgName`
         if [ "$pkgCount" == "0" ]
         then
