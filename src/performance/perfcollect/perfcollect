@@ -767,16 +767,23 @@ DiscoverCommands()
 			if [ "$?" == "0" ]
 			then
 				perfcmd=$perf49Cmd
-		    else
-                perf316Cmd=`GetCommandFullPath "perf_3.16"`
-                $perf316Cmd --version > /dev/null 2>&1
+            else
+                perf419Cmd=`GetCommandFullPath "perf_4.19"`
+                $perf419Cmd --version > /dev/null 2>&1
                 if [ "$?" == "0" ]
                 then
-                    perfcmd=$perf316Cmd
+                    perfcmd=$perf419Cmd
+		        else
+                    perf316Cmd=`GetCommandFullPath "perf_3.16"`
+                    $perf316Cmd --version > /dev/null 2>&1
+                    if [ "$?" == "0" ]
+                    then
+                        perfcmd=$perf316Cmd
+                    fi
                 fi
-            fi
-		fi
-	fi
+		    fi
+    	fi
+    fi
 	lttngcmd=`GetCommandFullPath "lttng"`
 	zipcmd=`GetCommandFullPath "zip"`
 	unzipcmd=`GetCommandFullPath "unzip"`
@@ -829,6 +836,19 @@ InstallPerf_Debian()
 {
 	# Disallow non-root users.
 	EnsureRoot
+
+    # Check for the existence of the linux-tools package.
+    pkgName = 'linux-tools'
+    pkgCount=`apt-cache search $pkgName | grep -c $pkgName`
+    if [ "$pkgCount" == "0" ]
+    then
+        pkgName = 'linux-perf'
+        pkgCount=`apt-cache search $pkgName | grep -c $pkgName`
+        if [ "$pkgCount" == "0" ]
+        then
+            FatalError "Unable to find a perf package to install."
+        fi
+    fi
 
 	# Install zip and perf.
 	apt-get install zip linux-tools binutils
