@@ -794,13 +794,13 @@ GetCommandFullPath()
 ######################################
 IsAmazonLinux()
 {
-	local al2=0
+	local al2=1
 	if [ -f /etc/system-release ]
 	then 
 		local amz=`cat /etc/system-release | grep Amazon`
-		if [ "$amz" == "Amazon Linux 2" ]
+		if [ -z "$amz" ]
 		then
-			al2=1
+			al2=0
 		fi		
 	fi
 	echo $al2
