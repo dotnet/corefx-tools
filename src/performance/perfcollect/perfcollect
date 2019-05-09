@@ -812,7 +812,7 @@ InstallPerf_AL2()
 	EnsureRoot
 
 	# Install perf
-	yum install perf zip unzip
+	yum -y install perf zip unzip
 }
 
 IsRHEL()
@@ -962,13 +962,13 @@ InstallLTTng_AL2()
 		#rpmkeys --import https://packages.efficios.com/rhel/repo.key
 		
 		# Install LTTng
-		#yum install lttng-tools lttng-ust kmod-lttng-modules babeltrace 
+		#yum -y install lttng-tools lttng-ust kmod-lttng-modules babeltrace 
 
 		### Build from source ###
 		# Install build package
 		#sudo yum -y install gcc gcc-c++ glib2 glibc make zlib-devel
 		# Install kernel
-		yum install kernel-devel-$(uname -r)
+		yum -y install kernel-devel-$(uname -r)
 		# Enable Extra Packages for Enterprise Linux 7 - x86_64
 		sudo amazon-linux-extras install epel
 
