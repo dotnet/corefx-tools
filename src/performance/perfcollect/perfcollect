@@ -820,8 +820,8 @@ InstallPerf_RHEL()
 IsDebian()
 {
 	local debian=0
-	local uname=`uname -a`
-	if [[ $uname =~ .*Debian.* ]]
+	local issue=`cat /etc/issue`
+	if [[ $issue =~ .*Debian.* ]]
 	then
 		debian=1
 	elif [ -f /etc/debian_version ]
